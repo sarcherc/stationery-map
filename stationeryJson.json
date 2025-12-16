@@ -1,0 +1,233 @@
+[
+  {
+    "Name": "大樹文房",
+    "Name(English)": "The Tree Stationery",
+    "Logo": "https://thetreestationery.com/cdn/shop/files/Logo_Namecard_Logo_White_BG_360x.png",
+    "Address": "香港銅鑼灣勿地臣街10號2樓",
+    "District": "銅鑼灣",
+    "Website": "https://thetreestationery.com/",
+    "IG": "https://www.instagram.com/thetreestationery/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "Paperhood",
+    "Name(English)": "Paperhood",
+    "Logo": "https://shoplineimg.com/56055585039055bf68000009/6161c63c261d91002642db6d/1200x.webp?source_format=jpeg",
+    "Address": "香港九龍觀塘駿業街49號佳貿中心7樓701室",
+    "District": "觀塘",
+    "Website": "https://www.paperhoodhk.com/",
+    "IG": "https://www.instagram.com/paperhoodhk/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "FUNCOLOR",
+    "Name(English)": "FUNCOLOR",
+    "Logo": "https://shoplineimg.com/57cc3dde6170691153890800/61602dd7505b0f0032e1dbb9/1200x.webp?source_format=png",
+    "Address": "香港九龍旺角上海街618地下G04A舖",
+    "District": "旺角",
+    "Website": "https://www.funcolorhk.com/",
+    "IG": "https://www.instagram.com/funcolor_pj/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "文簿具社",
+    "Name(English)": "Journalize",
+    "Logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQL2yfiNri96W7KeF2eHZb4HOBNYjh4qG6XdQ&s",
+    "Address": "銅鑼灣摩頓臺灣景樓灣景商場內23號地舖",
+    "District": "銅鑼灣",
+    "Website": null,
+    "IG": "https://www.instagram.com/journalize_store/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "GIFT IDEA",
+    "Name(English)": "GIFT IDEA",
+    "Logo": "https://www.giftideahongkong.com/image/catalog/giftidea-logo@2x.png",
+    "Address": "上環德輔道中306號4/F",
+    "District": "上環",
+    "Website": "https://www.giftideahongkong.com/",
+    "IG": "https://www.instagram.com/gift_idea_jp/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "如虎文具",
+    "Name(English)": "TigerStationery",
+    "Logo": "https://tigerstationery.net/cdn/shop/files/IMG_2372.jpg",
+    "Address": "太子華邦商業中心11樓1101室",
+    "District": "太子",
+    "Website": "https://tigerstationery.net/",
+    "IG": "https://www.instagram.com/tigerstationery_/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "九一文具房",
+    "Name(English)": "NineOne Hipster",
+    "Logo": "",
+    "Address": "荔枝角青山道688-700號嘉名工廠大廈E座4樓E1室",
+    "District": "荔枝角",
+    "Website": "https://nineonehipster.com/",
+    "IG": "https://www.instagram.com/nineone.hipster/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "Palette Library",
+    "Name(English)": "Palette Library",
+    "Logo": "",
+    "Address": "Room A, C2, 8/F, Block C Hong Kong Industrial Centre, 489-491 Castle Peak Road Lai Chi Kok, Cheung Sha Wan",
+    "District": "荔枝角",
+    "Website": null,
+    "IG": "https://www.instagram.com/palette.library/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "月下文具房",
+    "Name(English)": "Nocturnal",
+    "Logo": "https://nocturnalstationery.com/cdn/shop/files/fulllogo.png",
+    "Address": "香港新界荃灣荃景圍208號荃德花園地下17號鋪",
+    "District": "荃灣",
+    "Website": "https://nocturnalstationery.com/",
+    "IG": "https://www.instagram.com/nocturnalstationery/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "Circle Tape",
+    "Name(English)": "Circle Tape",
+    "Logo": "https://circletape.com/cdn/shop/files/Circle_tape_logo_71807759-6f47-41e5-b7f0-8a37416a4549.png",
+    "Address": "九龍灣 臨興街32號 美羅中心(一期)6樓21室",
+    "District": "九龍灣",
+    "Website": "https://circletape.com/",
+    "IG": "https://www.instagram.com/circletape/",
+    "Category": "文具選物店",
+    "Remark": "預約參觀"
+  },
+  {
+    "Name": "名筆館",
+    "Name(English)": "Muze Pens",
+    "Logo": "https://www.muzepens.com/cdn/shop/files/Muze_Pens_Logo_final.png",
+    "Address": "深水埗大南街236號",
+    "District": "深水埗",
+    "Website": "https://www.muzepens.com/",
+    "IG": "https://www.instagram.com/muzepens/",
+    "Category": "筆店",
+    "Remark": null
+  },
+  {
+    "Name": "文林文具",
+    "Name(English)": "Many Stationery",
+    "Logo": "https://www.many.hk/images/egegege-1536x233.jpg",
+    "Address": "深水埗元州街65號",
+    "District": "深水埗",
+    "Website": "https://www.many.hk/",
+    "IG": "https://www.instagram.com/many.stationery/",
+    "Category": "民生文具店",
+    "Remark": "只有台灣分店IG"
+  },
+  {
+    "Name": "小島文具堂",
+    "Name(English)": "Siugreat Stationery",
+    "Logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR9m3nWCaKe2lz14_prdNwzQ_dgJEsnwABoyg&s",
+    "Address": "深水埗欽州街65-71號榮業商業大廈504室",
+    "District": "深水埗",
+    "Website": "https://www.ruler-eraser.com/",
+    "IG": "https://www.instagram.com/siugreat_stationery/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "Luluwarehouse",
+    "Name(English)": "Luluwarehouse",
+    "Logo": "https://lh3.googleusercontent.com/tkUn5vI_QCzSIMt0f5XZ-3IiQWzXDTAFM_KSAHK9_wOT-VKePiXPsJrlHw-t4GmTnI91QFDq2I87Z3y5jQzb2Wv0Io3hTrzZVmU=s364",
+    "Address": "香港觀塘道398號嘉域大廈7樓D04室 [clarify?]",
+    "District": "觀塘",
+    "Website": "https://luluwarehouse.boutir.com/",
+    "IG": "https://www.instagram.com/luluwarehouse",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "幺川白水社",
+    "Name(English)": "Threadory",
+    "Logo": "https://threadoryhk.com/wp-content/uploads/2023/06/cropped-cropped-my-shop-logo-1594278496.png",
+    "Address": "沙田石門安耀街5號 W LUXE 23/F S16室",
+    "District": "沙田",
+    "Website": "https://threadoryhk.com/",
+    "IG": "https://www.instagram.com/threadory_stationery/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "銀の文房具",
+    "Name(English)": "Silver Stationery Shop",
+    "Logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRGwYV82gpJM3mpiktOmnWwHsx71cGhH_a9qg&s",
+    "Address": "新蒲崗 五芳街9-11號 盛景工業大廈 10樓12室",
+    "District": "新蒲崗",
+    "Website": "https://www.facebook.com/silverstationeryshop/",
+    "IG": null,
+    "Category": "文具博物館",
+    "Remark": "需提早預約"
+  },
+  {
+    "Name": "MARU MARU文房具",
+    "Name(English)": "MARU MARU HK",
+    "Logo": "https://marumaruhk.com/cdn/shop/files/LogoSQ.png",
+    "Address": "九龍新蒲崗大有街2號旺景工業大廈F座11樓6號室",
+    "District": "新蒲崗",
+    "Website": "https://marumaruhk.com/",
+    "IG": "https://www.instagram.com/marumaruhk/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "御書房文具店",
+    "Name(English)": "PAPETERI STATIONERY",
+    "Logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROu8KlQb-Wit3ezObY78c_bOSZo3lAkGkclQ&s",
+    "Address": "觀塘廣場2樓205，207號舖",
+    "District": "觀塘",
+    "Website": null,
+    "IG": "https://www.instagram.com/papeteri.stationery/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "御書房文具店",
+    "Name(English)": "PAPETERI STATIONERY",
+    "Logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROu8KlQb-Wit3ezObY78c_bOSZo3lAkGkclQ&s",
+    "Address": "天后電器道99號地舖",
+    "District": "天后",
+    "Website": null,
+    "IG": "https://www.instagram.com/papeteri.stationery/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "neomu neomu",
+    "Name(English)": "neomu neomu",
+    "Logo": "https://neomu-neomu.com/cdn/shop/files/LOGO_300x300.png?v=1625574525",
+    "Address": "觀塘開源道60號駱駝漆大廈3座2樓2L 3號室",
+    "District": "觀塘",
+    "Website": "https://neomu-neomu.com/",
+    "IG": "https://www.instagram.com/neomu_neomu_hk/",
+    "Category": "文具選物店",
+    "Remark": null
+  },
+  {
+    "Name": "豐原行",
+    "Name(English)": "FENG YUAN PENS",
+    "Logo": "https://www.fengyuanpens.com/wp-content/uploads/2020/12/cropped-cropped-%E8%B1%90%E5%8E%9F%E8%A1%8C.jpg",
+    "Address": "香港尖沙咀東麼地道63號好時中心地下21號舖",
+    "District": "尖沙咀",
+    "Website": "https://www.fengyuanpens.com/",
+    "IG": "https://www.instagram.com/fengyuanpens/",
+    "Category": "筆店",
+    "Remark": null
+  }
+]
