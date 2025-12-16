@@ -146,7 +146,7 @@
     "Name": "Luluwarehouse",
     "Name(English)": "Luluwarehouse",
     "Logo": "https://lh3.googleusercontent.com/tkUn5vI_QCzSIMt0f5XZ-3IiQWzXDTAFM_KSAHK9_wOT-VKePiXPsJrlHw-t4GmTnI91QFDq2I87Z3y5jQzb2Wv0Io3hTrzZVmU=s364",
-    "Address": "香港觀塘道398號嘉域大廈7樓D04室 [clarify?]",
+    "Address": "香港觀塘道398號嘉域大廈7樓D04室",
     "District": "觀塘",
     "Website": "https://luluwarehouse.boutir.com/",
     "IG": "https://www.instagram.com/luluwarehouse",
@@ -230,4 +230,5 @@
     "Category": "筆店",
     "Remark": null
   }
+
 ]
