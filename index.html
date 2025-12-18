@@ -38,8 +38,8 @@
       <div class="list-controls">
         <label for="sort-key">排序：</label>
         <select id="sort-name">
-          <option value="asc">店名（中文筆劃↑/A→Z）</option>
-          <option value="desc">店名（Z→A/中文筆劃↓）</option>
+          <option value="asc">Name（A→Z）</option>
+          <option value="desc">Name（Z→A）</option>
         </select>
 
         <label for="filter-district">地區：</label>
@@ -205,8 +205,8 @@
 
       // 2) Sort by Name
       const sorted = filtered.sort((A, B) => {
-        const a = A['Name'] ?? '';
-        const b = B['Name'] ?? '';
+        const a = A['Name(English)'] ?? '';
+        const b = B['Name(English)'] ?? '';
         const base = a.localeCompare(b, 'zh-Hant', { sensitivity: 'base', numeric: true });
         return sortDir === 'asc' ? base : -base;
       });
@@ -227,6 +227,7 @@
 
 
 </html>
+
 
 
 
