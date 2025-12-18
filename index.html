@@ -150,7 +150,9 @@
           if (e.target.closest('.links a')) {
             return;
           }
-          window.open('https://www.google.com/maps/d/u/0/viewer?mid=1usi5s5bBx0jkn_Fx-v5qyVJhRCybRgQ', '_blank');
+          
+          if (s['MapSite']) { window.open(s['MapSite'], '_blank'); }
+          
         });
 
         cardsEl.appendChild(card);
@@ -227,6 +229,7 @@
 
 
 </html>
+
 
 
 
