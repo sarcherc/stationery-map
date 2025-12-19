@@ -327,7 +327,7 @@ async function loadEvents() {
 }
 
 async function loadfooter() {
-    const footer = document.getElementById("standardFooter");
+    /* const footer = document.getElementById("standardFooter");
     const aIg = document.createElement('a');
     aIg.href = "https://www.instagram.com/s.archer.c/";
     aIg.target = '_blank';
@@ -336,7 +336,7 @@ async function loadfooter() {
     aIg.appendChild(createIcon('ig'));
 
 
-    footer.appendChild(aIg);
+    footer.appendChild(aIg); */
 }
 
 // event listener
@@ -347,3 +347,4 @@ filterDistrictEl.addEventListener('change', applyAndRender);
 loadShops();
 loadEvents();
 loadfooter();
+
