@@ -328,13 +328,11 @@
 
     footer {
         padding: 16px 20px;
-        color: var(--primary);
-        font-size: 22px;
+        color: #f1f5fb;
+        font-size: 12px;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f6eede;
         width: 100%;
-        position: sticky;
         margin-bottom: 0;
-        bottom: 0;
+        top: 0;
         overflow: hidden;
     }
