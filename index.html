@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" style="overflow-y: scroll;">
 
 <head>
   <meta charset="utf-8" />
@@ -21,6 +21,7 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="map">喺地圖揾小店</button>
     <button class="tab-btn" data-tab="list">小店清單</button>
+    <button class="tab-btn" data-tab="event">活動</button>
     <button class="tab-btn" data-tab="add">我要推薦</button>
     <button class="tab-btn tab-coming" data-tab="coming" aria-disabled="true">[未推出]</button>
   </div>
@@ -55,6 +56,9 @@
     </div>
 
     <!-- tab3: Event -->
+    <div class="view" id="view-event">
+      <div class="cards" id="event-cards"></div>
+    </div>
 
     <!-- tab4: Add -->
     <div class="view" id="view-add">
@@ -77,206 +81,13 @@
     <!-- tab5: coming soon -->
     <div class="view" id="view-coming" hidden></div>
 
-    <footer>
-      2025 s.archer.c
+    <footer id="standardFooter">
+      S.ARCHER.C
     </footer>
   </div>
 
-  <script>
-    // tab change
-    const btns = document.querySelectorAll('.tab-btn');
-    const viewMap = document.getElementById('view-map');
-    const viewList = document.getElementById('view-list');
-    const viewAdd = document.getElementById('view-add');
-    const viewComing = document.getElementById('view-coming'); //coming soon
 
-    btns.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const tab = btn.dataset.tab;
-        if (tab === 'coming') {
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-
-        btns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        if (tab === 'map') {
-          viewMap.classList.add('active');
-          viewList.classList.remove('active');
-          viewAdd.classList.remove('active');
-          viewComing.classList.remove('active'); // coming
-        } else if (tab === 'list') {
-          viewList.classList.add('active');
-          viewMap.classList.remove('active');
-          viewAdd.classList.remove('active');
-          viewComing.classList.remove('active'); // coming
-        } else if (tab === 'add') {
-          viewAdd.classList.add('active');
-          viewList.classList.remove('active');
-          viewMap.classList.remove('active');
-          viewComing.classList.remove('active'); // coming
-        }
-
-
-      });
-    });
-
-    const formBtns = document.querySelectorAll('.form-btn');
-    const viewFormShop = document.getElementById('view-form-shop');
-    const viewFormEvent = document.getElementById('view-form-event');
-
-    formBtns.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const tab = btn.dataset.form;
-
-        formBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-
-        if (tab === 'shop') {
-          viewFormShop.classList.add('active');
-          viewFormEvent.classList.remove('active');
-        } else if (tab === 'event') {
-          viewFormEvent.classList.add('active');
-          viewFormShop.classList.remove('active');
-        }
-      });
-    });
-
-    // Shop cards
-    function createIcon(type = 'web') {
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('width', '18'); svg.setAttribute('height', '18'); svg.setAttribute('viewBox', '0 0 24 24');
-      svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', type === 'ig' ? '#e4405f' : '#1e88e5');
-      svg.setAttribute('stroke-width', '2'); svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round');
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', type === 'ig'
-        ? 'M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12zm6.5-.75a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5z'
-        : 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 0s-4 3-4 10 4 10 4 10 4-3 4-10-4-10-4-10zm-9 10h18');
-      svg.appendChild(path);
-      return svg;
-    }
-    function safeText(t) { return (t ?? '').toString(); }
-
-
-    let rawShops = [];       // original json
-    let currentShops = [];   // use filter + sort 
-
-    // filter + sort 
-    const sortNameEl = document.getElementById('sort-name');        // asc | desc
-    const filterDistrictEl = document.getElementById('filter-district'); // "All" or filtered district
-
-    // Render List
-    const cardsEl = document.getElementById('cards');
-    function renderCards(shops) {
-      cardsEl.innerHTML = '';
-      shops.forEach((s, idx) => {
-        const card = document.createElement('div'); card.className = 'card'; card.dataset.index = idx;
-
-        const logo = document.createElement('div'); logo.className = 'logo-wrap';
-        if (s.Logo) { const img = document.createElement('img'); img.src = s.Logo; img.alt = `${safeText(s['Name'])} 的標誌`; logo.appendChild(img); }
-        else { logo.textContent = '📚'; logo.setAttribute('aria-label', '無標誌'); }
-
-        const body = document.createElement('div');
-        const h3 = document.createElement('h3'); h3.textContent = safeText(s['Name']);
-        const en = document.createElement('div'); en.className = 'en-name'; en.textContent = safeText(s['Name(English)']);
-        const addr = document.createElement('div'); addr.className = 'address'; addr.textContent = safeText(s['Address']);
-
-        const regionLine = document.createElement('span'); regionLine.className = 'en-name'; regionLine.textContent = safeText(s['District']);
-        const cat = document.createElement('span'); cat.className = 'category'; cat.textContent = safeText(s['Category']);
-
-        const links = document.createElement('div'); links.className = 'links';
-        if (s['Website']) { const aWeb = document.createElement('a'); aWeb.href = s['Website']; aWeb.target = '_blank'; aWeb.rel = 'noopener noreferrer'; aWeb.title = 'Website'; aWeb.appendChild(createIcon('web')); links.appendChild(aWeb); }
-        if (s['IG']) { const aIg = document.createElement('a'); aIg.href = s['IG']; aIg.target = '_blank'; aIg.rel = 'noopener noreferrer'; aIg.title = 'Instagram'; aIg.appendChild(createIcon('ig')); links.appendChild(aIg); }
-
-        body.appendChild(h3); body.appendChild(en); body.appendChild(addr); body.appendChild(cat); body.appendChild(links);
-
-        if (s['Remark']) { const note = document.createElement('div'); note.className = 'notice'; note.textContent = safeText(s['Remark']); body.appendChild(note); }
-
-        card.appendChild(logo); card.appendChild(body);
-
-        // Click card to open My Maps
-        card.addEventListener('click', (e) => {
-          if (e.target.closest('.links a')) {
-            return;
-          }
-
-          if (s['MapSite']) { window.open(s['MapSite'], '_blank'); }
-
-        });
-
-        cardsEl.appendChild(card);
-      });
-    }
-
-    // read json
-    async function loadShops() {
-
-      try {
-        const res = await fetch('./stationeryJson.json', { cache: 'no-store' });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        rawShops = await res.json();
-
-        // district selection
-        const districts = Array.from(new Set(
-          rawShops
-            .map(s => s.District || '')
-            .filter(Boolean)
-        )).sort((a, b) => a.localeCompare(b, 'zh-Hant', { sensitivity: 'base', numeric: true }));
-
-        // grab district
-        districts.forEach(d => {
-          const opt = document.createElement('option');
-          opt.value = d;
-          opt.textContent = d;
-          filterDistrictEl.appendChild(opt);
-        });
-
-        applyAndRender();
-      } catch (err) {
-
-        console.error('Fail to load JSON:', err);
-        // 友善提示（可選）
-        const warn = document.createElement('div');
-        warn.style.cssText = 'padding:12px 20px; color:#8a5300; background:#fff7e6; border:1px solid #ffe7ba; border-radius:8px; margin:12px 20px;';
-        warn.textContent = 'Fail to load data';
-        document.body.insertBefore(warn, document.querySelector('footer'));
-      }
-    }
-
-    // filter, sort, render
-    function applyAndRender() {
-      const sortDir = sortNameEl.value;        // 'asc' or 'desc'
-      const district = filterDistrictEl.value; // '' or district
-
-      // 1) Filter by District
-      const filtered = rawShops.filter(s => {
-        if (!district) return true;            // All district
-        return (s.District || '') === district;
-      });
-
-      // 2) Sort by Name
-      const sorted = filtered.sort((A, B) => {
-        const a = A['Name(English)'] ?? '';
-        const b = B['Name(English)'] ?? '';
-        const base = a.localeCompare(b, 'zh-Hant', { sensitivity: 'base', numeric: true });
-        return sortDir === 'asc' ? base : -base;
-      });
-
-      currentShops = sorted;
-      renderCards(currentShops);
-    }
-
-    // event listener
-    sortNameEl.addEventListener('change', applyAndRender);
-    filterDistrictEl.addEventListener('change', applyAndRender);
-
-    // load
-    loadShops();
-
-  </script>
 </body>
-
+<script type="text/javascript" src="stationery.js"></script>
 
 </html>

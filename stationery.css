@@ -16,6 +16,8 @@
         font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
         background: var(--bg);
         color: var(--text);
+        min-height: 100%;
+        background-image: url("images/stationery_bg.png");
     }
 
     header {
@@ -78,7 +80,6 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 16px;
-        background-image: url("images/stationery_bg.png");
     }
 
     .card {
@@ -311,12 +312,29 @@
         border-color: var(--border);
     }
 
+    .event-title {
+        margin: 0 0 8px 0;
+        font-size: 1.3em;
+        color: #333;
+    }
+
+    .date-line {
+        color: var(--text);
+        font-size: 13px;
+        font-weight: bold;
+        margin-top: 6px;
+        color: #d32f2f;
+    }
+
     footer {
         padding: 16px 20px;
-        color: #000000;
-        font-size: 12px;
+        color: var(--primary);
+        font-size: 22px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background-color: #f6eede;
         width: 100%;
-        position: fixed;
+        position: sticky;
+        margin-bottom: 0;
         bottom: 0;
+        overflow: hidden;
     }
