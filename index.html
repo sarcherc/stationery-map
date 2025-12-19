@@ -21,7 +21,8 @@
   <div class="tabs">
     <button class="tab-btn active" data-tab="map">喺地圖揾小店</button>
     <button class="tab-btn" data-tab="list">小店清單</button>
-    <button class="tab-btn tab-coming" data-tab="coming" aria-disabled="true">增加小店[未推出]</button>
+    <button class="tab-btn" data-tab="add">我要推薦</button>
+    <button class="tab-btn tab-coming" data-tab="coming" aria-disabled="true">[未推出]</button>
   </div>
 
   <div class="container-bg">
@@ -53,7 +54,27 @@
       <div class="cards" id="cards"></div>
     </div>
 
-    <!-- tab3: coming soon -->
+    <!-- tab3: Event -->
+
+    <!-- tab4: Add -->
+    <div class="view" id="view-add">
+      <div class="tabs">
+        <button class="form-btn" data-form="shop">推薦店家</button>
+        <button class="form-btn" data-form="event">推薦活動</button>
+      </div>
+      <div class="view" id="view-form-shop">
+        <iframe
+          src="https://docs.google.com/forms/d/e/1FAIpQLScK4UVCy45GkB5FXCCbxondR-MQN4dsReOnAU5dJt9Dsj72rw/viewform?embedded=true"
+          width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
+      </div>
+      <div class="view" id="view-form-event">
+        <iframe
+          src="https://docs.google.com/forms/d/e/1FAIpQLSdB7BZO4mrtKToDkUI8ePyunrzAhDdpBPR69T476Sc-Tn8J9g/viewform?embedded=true"
+          width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
+      </div>
+    </div>
+
+    <!-- tab5: coming soon -->
     <div class="view" id="view-coming" hidden></div>
 
     <footer>
@@ -66,10 +87,11 @@
     const btns = document.querySelectorAll('.tab-btn');
     const viewMap = document.getElementById('view-map');
     const viewList = document.getElementById('view-list');
+    const viewAdd = document.getElementById('view-add');
     const viewComing = document.getElementById('view-coming'); //coming soon
 
     btns.forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
         const tab = btn.dataset.tab;
         if (tab === 'coming') {
           e.preventDefault();
@@ -83,13 +105,42 @@
         if (tab === 'map') {
           viewMap.classList.add('active');
           viewList.classList.remove('active');
-          viewComing.classList.remove('active'); // hidden
+          viewAdd.classList.remove('active');
+          viewComing.classList.remove('active'); // coming
         } else if (tab === 'list') {
           viewList.classList.add('active');
           viewMap.classList.remove('active');
-          viewComing.classList.remove('active'); // hidden
+          viewAdd.classList.remove('active');
+          viewComing.classList.remove('active'); // coming
+        } else if (tab === 'add') {
+          viewAdd.classList.add('active');
+          viewList.classList.remove('active');
+          viewMap.classList.remove('active');
+          viewComing.classList.remove('active'); // coming
         }
 
+
+      });
+    });
+
+    const formBtns = document.querySelectorAll('.form-btn');
+    const viewFormShop = document.getElementById('view-form-shop');
+    const viewFormEvent = document.getElementById('view-form-event');
+
+    formBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const tab = btn.dataset.form;
+
+        formBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        if (tab === 'shop') {
+          viewFormShop.classList.add('active');
+          viewFormEvent.classList.remove('active');
+        } else if (tab === 'event') {
+          viewFormEvent.classList.add('active');
+          viewFormShop.classList.remove('active');
+        }
       });
     });
 
@@ -150,9 +201,9 @@
           if (e.target.closest('.links a')) {
             return;
           }
-          
+
           if (s['MapSite']) { window.open(s['MapSite'], '_blank'); }
-          
+
         });
 
         cardsEl.appendChild(card);
@@ -229,9 +280,3 @@
 
 
 </html>
-
-
-
-
-
-
