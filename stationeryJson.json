@@ -275,7 +275,7 @@
 {
     "Name": "日半誌",
     "Name(English)": "yatbunzi",
-    "Logo": "[https://media.shopages3.com/media/f855/686356238887_Dw6A7rf6NmWFnVHhJAWGbNtGxnNgfMFtxtTBThgu.png](https://media.shopages3.com/media/f855/686356238887_Dw6A7rf6NmWFnVHhJAWGbNtGxnNgfMFtxtTBThgu.png)",
+    "Logo": "https://media.shopages3.com/media/f855/686356238887_Dw6A7rf6NmWFnVHhJAWGbNtGxnNgfMFtxtTBThgu.png",
     "Address": "葵興美華工業大廈15樓",
     "District": "新界, 葵興",
     "Website": "[https://www.yatbunzi.com/](https://www.yatbunzi.com/)",
@@ -299,6 +299,7 @@
     "MapSite": "[https://maps.app.goo.gl/opBT7PYbJBM24nHC9](https://maps.app.goo.gl/zP3mem2pVHakBz2e6)"
 }
 ]
+
 
 
 
