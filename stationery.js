@@ -71,6 +71,8 @@ let currentShops = [];   // use filter + sort
 
 // filter + sort 
 const sortNameEl = document.getElementById('sort-name');        // asc | desc
+const filterRegionEl = document.getElementById('filter-region'); // "All" or filtered region
+const districtWrap = document.getElementById('district-wrap');
 const filterDistrictEl = document.getElementById('filter-district'); // "All" or filtered district
 
 // Render List
@@ -155,18 +157,72 @@ async function loadShops() {
         }
 
         // district selection
-        const districts = Array.from(new Set(
-            rawShops
-                .map(s => s.District || '')
-                .filter(Boolean)
-        )).sort((a, b) => a.localeCompare(b, 'zh-Hant', { sensitivity: 'base', numeric: true }));
+        const regionsSet = new Set();
+        const regionDistrictsMap = {};
 
-        // grab district
-        districts.forEach(d => {
+        rawShops.forEach(s => {
+            const rawDist = (s.District || '').trim();
+            if (!rawDist) return;
+
+            // Split by comma or full-width comma
+            const parts = rawDist.split(/[,，]\s*/);
+            const r = parts[0];
+            const d = parts.length > 1 ? parts[1] : '';
+
+            regionsSet.add(r);
+            if (!regionDistrictsMap[r]) {
+                regionDistrictsMap[r] = new Set();
+            }
+            if (d) {
+                regionDistrictsMap[r].add(d);
+            }
+        });
+
+        const regions = Array.from(regionsSet).sort((a, b) => a.localeCompare(b, 'zh-Hant', { sensitivity: 'base', numeric: true }));
+
+        // grab regions
+        regions.forEach(r => {
             const opt = document.createElement('option');
-            opt.value = d;
-            opt.textContent = d;
-            filterDistrictEl.appendChild(opt);
+            opt.value = r;
+            opt.textContent = r;
+            filterRegionEl.appendChild(opt);
+        });
+        
+        // initial populate all districts
+        const allDists = Array.from(new Set(Object.values(regionDistrictsMap).flatMap(set => Array.from(set)))).sort((a, b) => a.localeCompare(b, 'zh-Hant', { sensitivity: 'base', numeric: true }));
+        allDists.forEach(d => {
+            if (d) {
+                const opt = document.createElement('option');
+                opt.value = d;
+                opt.textContent = d;
+                filterDistrictEl.appendChild(opt);
+            }
+        });
+
+        // on region change -> update district dropdown
+        filterRegionEl.addEventListener('change', () => {
+            const r = filterRegionEl.value;
+            filterDistrictEl.innerHTML = '<option value="">全部地區</option>';
+            if (!r) {
+                // if no region is selected, show all districts again
+                allDists.forEach(d => {
+                    if (d) {
+                        const opt = document.createElement('option');
+                        opt.value = d;
+                        opt.textContent = d;
+                        filterDistrictEl.appendChild(opt);
+                    }
+                });
+            } else {
+                const dists = Array.from(regionDistrictsMap[r] || []).sort((a, b) => a.localeCompare(b, 'zh-Hant', { sensitivity: 'base', numeric: true }));
+                dists.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d;
+                    opt.textContent = d;
+                    filterDistrictEl.appendChild(opt);
+                });
+            }
+            applyAndRender();
         });
 
         applyAndRender();
@@ -182,12 +238,21 @@ async function loadShops() {
 // filter, sort, render
 function applyAndRender() {
     const sortDir = sortNameEl.value;        // 'asc' or 'desc'
-    const district = filterDistrictEl.value; // '' or district
+    const region = filterRegionEl.value;
+    const district = filterDistrictEl.value;
 
-    // 1) Filter by District
+    // 1) Filter by Region/District
     const filtered = rawShops.filter(s => {
-        if (!district) return true;            // All district
-        return (s.District || '') === district;
+        const rawDist = (s.District || '').trim();
+        
+        const parts = rawDist.split(/[,，]\s*/);
+        const r = parts[0];
+        const d = parts.length > 1 ? parts[1] : '';
+
+        if (region && r !== region) return false;
+        if (district && d !== district) return false;
+        
+        return true;
     });
 
     // 2) Sort by Name
@@ -369,6 +434,7 @@ async function loadfooter() {
 
 // event listener
 sortNameEl.addEventListener('change', applyAndRender);
+filterRegionEl.addEventListener('change', applyAndRender);
 filterDistrictEl.addEventListener('change', applyAndRender);
 
 // load

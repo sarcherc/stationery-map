@@ -188,6 +188,7 @@
     .list-controls {
         display: flex;
         align-items: center;
+        flex-wrap: wrap;
         gap: 10px;
         padding: 12px 20px;
         border-bottom: 1px solid var(--border);
@@ -200,6 +201,12 @@
     .list-controls label {
         font-size: 14px;
         color: var(--muted);
+    }
+
+    .list-controls span#district-wrap {
+        display: none;
+        align-items: center;
+        gap: 10px;
     }
 
     #sort-key {
@@ -226,6 +233,7 @@
     /* <select> */
     .select-reset,
     #sort-name,
+    #filter-region,
     #filter-district {
         font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
         color: var(--text);
@@ -255,6 +263,7 @@
 
     /* hover */
     #sort-name:hover,
+    #filter-region:hover,
     #filter-district:hover {
         border-color: #6e380b;
     }
