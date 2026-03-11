@@ -118,11 +118,41 @@ function renderCards(shops) {
 
 // read json
 async function loadShops() {
+    const url = 'https://docs.google.com/spreadsheets/d/1q1OCwmfDULPzFwB-X6hobEqiz7QTJkyO/gviz/tq?tqx=out:json';
 
     try {
-        const res = await fetch('./stationeryJson.json', { cache: 'no-store' });
+        const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        rawShops = await res.json();
+        const text = await res.text();
+        
+        let jsonText = text
+            .trim()
+            .replace(/^\/\*O_o\*\/\s*/g, '')
+            .replace(/^google\.visualization\.Query\.setResponse\(/, '')
+            .replace(/\);?$/, '');
+
+        const data = JSON.parse(jsonText);
+        const rows = data.table?.rows || [];
+
+        // Map Google Sheet columns to keys (Name, English Name, District, Address, Category, Website, IG, Logo, Remark, MapSite)
+        rawShops = rows.map(row => ({
+            "Name": row.c[2]?.v || "",
+            "Name(English)": row.c[3]?.v || "",
+            "Logo": row.c[4]?.v || "",
+            "Address": row.c[5]?.v || "",
+            "District": row.c[6]?.v || "",
+            "Website": row.c[7]?.v || "",
+            "IG": row.c[8]?.v || "",
+            "Category": row.c[9]?.v || "",
+            "Remark": row.c[10]?.v || "",
+            "MapSite": row.c[12]?.v || ""
+        }));
+
+        console.log('Raw shops data:', rawShops); // Check here — should show ALL rows from the sheet
+        // Skip header if first row is "Name"
+        if (rawShops.length > 0 && rawShops[0].Name === "Name") {
+            rawShops.shift();
+        }
 
         // district selection
         const districts = Array.from(new Set(
@@ -141,9 +171,7 @@ async function loadShops() {
 
         applyAndRender();
     } catch (err) {
-
-        console.error('Fail to load JSON:', err);
-        // optional
+        console.error('Fail to load Google Sheet data:', err);
         const warn = document.createElement('div');
         warn.style.cssText = 'padding:12px 20px; color:#8a5300; background:#fff7e6; border:1px solid #ffe7ba; border-radius:8px; margin:12px 20px;';
         warn.textContent = 'Fail to load data';
