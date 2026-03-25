@@ -4,6 +4,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sarcherc.github.io/stationery-map/">
+  <meta property="og:title" content="文具小店地圖">
+  <meta property="og:description" content="喺地圖揾文具小店、查看小店清單及活動資訊。">
+  <meta property="og:image" content="https://sarcherc.github.io/stationery-map/images/logo.png">
+
+  
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="文具小店地圖">
+  <meta name="twitter:description" content="喺地圖揾文具小店、查看小店清單及活動資訊。">
+  <meta name="twitter:image" content="https://sarcherc.github.io/stationery-map/images/logo.png">
+
   <title>文具小店地圖</title>
   <link rel="icon" type="image/png" href="./images/logo.png">
   <link rel="stylesheet" href="stationery.css">
@@ -44,6 +57,11 @@
           <option value="desc">Name（Z→A）</option>
         </select>
 
+        <label for="filter-category">類別：</label>
+        <select id="filter-category">
+          <option value="">全部類別</option>
+        </select>
+
         <label for="filter-region">區域：</label>
         <select id="filter-region">
           <option value="">全部區域</option>
@@ -56,7 +74,7 @@
           </select>
         </span>
       </div>
-      <div class="list-controls">
+      <div class="list-note">
         <p style="color:brown">部分店家的營業時間不穩定或因應假期有所不同，請先參考店家IG公告，以免撲空。</p>
       </div>
 

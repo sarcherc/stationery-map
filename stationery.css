@@ -41,7 +41,7 @@
         background: #fff;
         border-bottom: 1px solid var(--border);
         position: sticky;
-        top: 60px;
+        top: var(--header-h, 82px);
         z-index: 9;
     }
 
@@ -194,11 +194,20 @@
         border-bottom: 1px solid var(--border);
         background: #ffffff;
         position: sticky;
-        top: 108px;
+        top: var(--controls-top, 144px);
         z-index: 8;
     }
 
-    .list-controls label {
+    .list-note {
+        padding: 8px 20px;
+        border-bottom: 1px solid var(--border);
+        background: #ffffff;
+    }
+
+    .list-note p {
+        margin: 0;
+        font-size: 13px;
+    }
         font-size: 14px;
         color: var(--muted);
     }
@@ -234,7 +243,8 @@
     .select-reset,
     #sort-name,
     #filter-region,
-    #filter-district {
+    #filter-district,
+    #filter-category {
         font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
         color: var(--text);
         height: 36px;
@@ -264,7 +274,8 @@
     /* hover */
     #sort-name:hover,
     #filter-region:hover,
-    #filter-district:hover {
+    #filter-district:hover,
+    #filter-category:hover {
         border-color: #6e380b;
     }
 

@@ -1,4 +1,15 @@
 // tab change
+function updateStickyOffsets() {
+    const header = document.querySelector('header');
+    const tabs = document.querySelector('.tabs');
+    const headerH = header ? header.offsetHeight : 0;
+    const tabsH = tabs ? tabs.offsetHeight : 0;
+    document.documentElement.style.setProperty('--header-h', headerH + 'px');
+    document.documentElement.style.setProperty('--controls-top', (headerH + tabsH) + 'px');
+}
+updateStickyOffsets();
+window.addEventListener('resize', updateStickyOffsets);
+
 const btns = document.querySelectorAll('.tab-btn');
 const views = {
     map: document.getElementById('view-map'),
@@ -74,6 +85,7 @@ const sortNameEl = document.getElementById('sort-name');        // asc | desc
 const filterRegionEl = document.getElementById('filter-region'); // "All" or filtered region
 const districtWrap = document.getElementById('district-wrap');
 const filterDistrictEl = document.getElementById('filter-district'); // "All" or filtered district
+const filterCategoryEl = document.getElementById('filter-category'); // "All" or filtered category
 
 // Render List
 const cardsEl = document.getElementById('cards');
@@ -199,6 +211,21 @@ async function loadShops() {
             }
         });
 
+        // populate category dropdown
+        const categoriesSet = new Set();
+        rawShops.forEach(s => {
+            const cat = (s.Category || '').trim();
+            if (cat) categoriesSet.add(cat);
+        });
+        const categories = Array.from(categoriesSet).sort((a, b) => a.localeCompare(b, 'zh-Hant', { sensitivity: 'base' }));
+        categories.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            filterCategoryEl.appendChild(opt);
+        });
+        filterCategoryEl.addEventListener('change', applyAndRender);
+
         // on region change -> update district dropdown
         filterRegionEl.addEventListener('change', () => {
             const r = filterRegionEl.value;
@@ -240,8 +267,9 @@ function applyAndRender() {
     const sortDir = sortNameEl.value;        // 'asc' or 'desc'
     const region = filterRegionEl.value;
     const district = filterDistrictEl.value;
+    const category = filterCategoryEl.value;
 
-    // 1) Filter by Region/District
+    // 1) Filter by Region/District/Category
     const filtered = rawShops.filter(s => {
         const rawDist = (s.District || '').trim();
         
@@ -251,6 +279,7 @@ function applyAndRender() {
 
         if (region && r !== region) return false;
         if (district && d !== district) return false;
+        if (category && (s.Category || '').trim() !== category) return false;
         
         return true;
     });

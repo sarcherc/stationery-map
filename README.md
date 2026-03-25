@@ -2,8 +2,9 @@
 包括Google My Maps集合: 選物文具店, 民生文具店, 筆店;文創/風格文具店;<br>
 提交小店或活動功能 - 2025.12.19<br>
 雙層地區filter - 2026.03.11<br>
+fix logo display when sharing<br>
 
-即將包括: 文創活動地圖; 
+即將包括: 文創活動地圖<br>
 即將更新: 地圖功能(gps to show); button new line<br>
 
 歡迎文具控、文具達人、文具店主們提交小店&活動推薦
