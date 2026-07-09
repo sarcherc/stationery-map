@@ -4,7 +4,7 @@
 雙層地區filter - 2026.03.11<br>
 fix logo display when sharing<br>
 
-即將包括: 文創活動地圖<br>
-即將更新: 地圖功能(gps to show); button new line<br>
+即將包括: button new line, envent end date checking, 文創活動地圖<br>
+即將更新: 地圖功能(gps to show); <br>
 
 歡迎文具控、文具達人、文具店主們提交小店&活動推薦
