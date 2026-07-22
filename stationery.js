@@ -358,19 +358,33 @@ function renderEvents(events) {
         return null;
     }
 
-    // Only include events whose end date is before today
+    function toMidnight(d) {
+        if (!d) return null;
+        const x = new Date(d);
+        x.setHours(0,0,0,0);
+        return x;
+    }
+
+    // Only include events whose end date is today or later
     const today = new Date();
     today.setHours(0,0,0,0);
 
+    // Build debug info and filter correctly
     const visibleEvents = events.filter(ev => {
         // Prefer the sheet column name date_end, then fall back to other fields
-        const dateStr = ev.date_end || ev.dateEnd || ev.dateEndFormatted || ev.dateEndRaw || ev.dateEndString || ev.dateEnd || ev.dateEnd || ev.dateEnd || ev.dateStart || ev.dateStart || '';
-        const endDate = parseDateString(dateStr);
-        if (!endDate) return false; // skip events without parseable end date
-        // If endDate is strictly before today, include
-        return endDate < today;
+        const raw = ev.date_end ?? ev.dateEnd ?? ev.dateEndFormatted ?? ev.dateEndRaw ?? ev.dateEndString ?? ev.dateStart ?? ev.dateStart ?? '';
+        const parsed = parseDateString(raw);
+        const endDate = toMidnight(parsed);
+
+        // Debug log to help diagnose mismatches (will appear in console)
+        console.debug('Event parse', { name: ev.name, rawDate: raw, parsed: parsed ? parsed.toISOString().slice(0,10) : null, include: !!(endDate && endDate >= today) });
+
+        if (!endDate) return false; // skip unparseable
+        // include events that end today or later; exclude strictly past
+        return endDate >= today;
     });
 
+    // Render only visibleEvents
     visibleEvents.forEach((event, idx) => {
         const card = document.createElement('div');
         card.className = 'card';
