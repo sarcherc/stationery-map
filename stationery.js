@@ -501,6 +501,7 @@ async function loadEvents() {
                 name: row.c[0]?.v || "--",
                 dateStart: row.c[1]?.f || row.c[1]?.v || "",
                 dateEnd: row.c[2]?.f || row.c[2]?.v || "",
+                date_end: row.c[2]?.f || row.c[2]?.v || "",
                 weekDay: row.c[3]?.v || "",
                 venue: row.c[4]?.v || "",
                 address: row.c[5]?.v || "",
