@@ -109,11 +109,46 @@
 
     <footer id="standardFooter"  style="font-family: 'Trebuchet MS', Tahoma, sans-serif; font-size: 18px; font-style: italic; color: rgb(69, 28, 3);">
       S.ARCHER.C
+      <a id="ig-link" href="https://www.instagram.com/s.archer.c/" target="_blank" rel="noopener" aria-label="Instagram" style="margin-left:8px; vertical-align: middle;"></a>
     </footer>
   </div>
 
 
 </body>
 <script type="text/javascript" src="stationery.js"></script>
+
+<script>
+  // Insert Instagram icon into footer using createIcon('ig') from stationery.js
+  (function () {
+    try {
+      var link = document.getElementById('ig-link');
+      if (!link) return;
+
+      // If createIcon is already available, use it immediately
+      if (typeof createIcon === 'function') {
+        var icon = createIcon('ig');
+        if (icon instanceof Element) {
+          link.appendChild(icon);
+        } else if (typeof icon === 'string') {
+          link.innerHTML = icon;
+        }
+        return;
+      }
+
+      // Otherwise wait until the document is fully loaded and try again
+      function insertIcon() {
+        if (typeof createIcon !== 'function') return;
+        var icon = createIcon('ig');
+        if (icon instanceof Element) link.appendChild(icon);
+        else if (typeof icon === 'string') link.innerHTML = icon;
+        document.removeEventListener('DOMContentLoaded', insertIcon);
+      }
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', insertIcon);
+      else insertIcon();
+    } catch (e) {
+      console.error('Failed to insert Instagram icon:', e);
+    }
+  })();
+</script>
 
 </html>
