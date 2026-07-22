@@ -62,24 +62,7 @@ formBtns.forEach(btn => {
 });
 
 // Shop cards
-function createIcon(type = 'thd') {
-    // New 'thd' icon (Threads) — black color, uses provided SVG path
-    if (type === 'thd') {
-        const ns = 'http://www.w3.org/2000/svg';
-        const svg = document.createElementNS(ns, 'svg');
-        svg.setAttribute('xmlns', ns);
-        svg.setAttribute('width', '16');
-        svg.setAttribute('height', '16');
-        svg.setAttribute('viewBox', '0 0 16 16');
-        svg.setAttribute('fill', '#000');
-        svg.setAttribute('class', 'bi bi-threads');
-        const path = document.createElementNS(ns, 'path');
-        path.setAttribute('d', 'M6.321 6.016c-.27-.18-1.166-.802-1.166-.802.756-1.081 1.753-1.502 3.132-1.502.975 0 1.803.327 2.394.948s.928 1.509 1.005 2.644q.492.207.905.484c1.109.745 1.719 1.86 1.719 3.137 0 2.716-2.226 5.075-6.256 5.075C4.594 16 1 13.987 1 7.994 1 2.034 4.482 0 8.044 0 9.69 0 13.55.243 15 5.036l-1.36.353C12.516 1.974 10.163 1.43 8.006 1.43c-3.565 0-5.582 2.171-5.582 6.79 0 4.143 2.254 6.343 5.63 6.343 2.777 0 4.847-1.443 4.847-3.556 0-1.438-1.208-2.127-1.27-2.127-.236 1.234-.868 3.31-3.644 3.31-1.618 0-3.013-1.118-3.013-2.582 0-2.09 1.984-2.847 3.55-2.847.586 0 1.294.04 1.663.114 0-.637-.54-1.728-1.9-1.728-1.25 0-1.566.405-1.967.868ZM8.716 8.19c-2.04 0-2.304.87-2.304 1.416 0 .878 1.043 1.168 1.6 1.168 1.02 0 2.067-.282 2.232-2.423a6.2 6.2 0 0 0-1.528-.161');
-        svg.appendChild(path);
-        return svg;
-    }
-
-    // Preserve existing icons for 'ig' and 'web' (keeps previous styling)
+function createIcon(type = 'web') {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', '18'); svg.setAttribute('height', '18'); svg.setAttribute('viewBox', '0 0 24 24');
     svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', type === 'ig' ? '#e4405f' : '#1e88e5');
@@ -124,7 +107,7 @@ function renderCards(shops) {
         const cat = document.createElement('span'); cat.className = 'category'; cat.textContent = safeText(s['Category']);
 
         const links = document.createElement('div'); links.className = 'links';
-        if (s['Website']) { const aWeb = document.createElement('a'); aWeb.href = s['Website']; aWeb.target = '_blank'; aWeb.rel = 'noopener noreferrer'; aWeb.title = 'Website'; aWeb.appendChild(creat[...]
+        if (s['Website']) { const aWeb = document.createElement('a'); aWeb.href = s['Website']; aWeb.target = '_blank'; aWeb.rel = 'noopener noreferrer'; aWeb.title = 'Website'; aWeb.appendChild(createIcon('web'));
             links.appendChild(aWeb); }
         if (s['IG']) { const aIg = document.createElement('a'); aIg.href = s['IG']; aIg.target = '_blank'; aIg.rel = 'noopener noreferrer'; aIg.title = 'Instagram'; aIg.appendChild(createIcon('ig'));
             links.appendChild(aIg); }
@@ -425,7 +408,11 @@ function renderEvents(events) {
         // Date range
         const dateLine = document.createElement('div');
         dateLine.className = 'date-line';
-        dateLine.innerHTML = `\n    ${safeText(event.dateStart)}\n    ${event.dateEnd && event.dateEnd !== event.dateStart ? ` – ${safeText(event.dateEnd)}` : ''}\n    <span class="weekday">${safeText(event.weekDay)}</span>\n    `;
+        dateLine.innerHTML = `
+    ${safeText(event.dateStart)}
+    ${event.dateEnd && event.dateEnd !== event.dateStart ? ` – ${safeText(event.dateEnd)}` : ''}
+    <span class="weekday">${safeText(event.weekDay)}</span>
+    `;
 
         // Venue
         const venue = document.createElement('div');
@@ -509,7 +496,7 @@ async function loadEvents() {
                 // Safely strip common wrappers
                 let jsonText = text
                     .trim()
-                    .replace(/^\/\*O_o\*\//\s*/g, '')  // remove optional /*O_o*/
+                    .replace(/^\/\*O_o\*\/\s*/g, '')  // remove optional /*O_o*/
                     .replace(/^google\.visualization\.Query\.setResponse\(/, '')
                     .replace(/\);?$/, '');
 
