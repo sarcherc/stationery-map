@@ -107,8 +107,10 @@ function renderCards(shops) {
         const cat = document.createElement('span'); cat.className = 'category'; cat.textContent = safeText(s['Category']);
 
         const links = document.createElement('div'); links.className = 'links';
-        if (s['Website']) { const aWeb = document.createElement('a'); aWeb.href = s['Website']; aWeb.target = '_blank'; aWeb.rel = 'noopener noreferrer'; aWeb.title = 'Website'; aWeb.appendChild(createIcon('web')); links.appendChild(aWeb); }
-        if (s['IG']) { const aIg = document.createElement('a'); aIg.href = s['IG']; aIg.target = '_blank'; aIg.rel = 'noopener noreferrer'; aIg.title = 'Instagram'; aIg.appendChild(createIcon('ig')); links.appendChild(aIg); }
+        if (s['Website']) { const aWeb = document.createElement('a'); aWeb.href = s['Website']; aWeb.target = '_blank'; aWeb.rel = 'noopener noreferrer'; aWeb.title = 'Website'; aWeb.appendChild(createIcon('web'));
+            links.appendChild(aWeb); }
+        if (s['IG']) { const aIg = document.createElement('a'); aIg.href = s['IG']; aIg.target = '_blank'; aIg.rel = 'noopener noreferrer'; aIg.title = 'Instagram'; aIg.appendChild(createIcon('ig'));
+            links.appendChild(aIg); }
 
         body.appendChild(h3); body.appendChild(en); body.appendChild(addr); body.appendChild(cat); body.appendChild(links);
 
@@ -301,7 +303,59 @@ function renderEvents(events) {
     const viewEventCards = document.getElementById("event-cards");
     viewEventCards.innerHTML = '';
 
-    events.forEach((event, idx) => {
+    // helper: robust date parsing for a few common formats
+    function parseDateString(s) {
+        if (!s) return null;
+        // Try native parsing first
+        let d = new Date(s);
+        if (!isNaN(d.getTime())) return d;
+
+        // Normalize full-width chars and trim
+        s = s.replace(/[／\\。]/g, '/').replace(/\u3000/g, ' ').trim();
+
+        // Try to extract YYYY MM DD
+        let m = s.match(/(\d{4})[^\d]?(\d{1,2})[^\d]?(\d{1,2})/);
+        if (m) {
+            const yyyy = m[1];
+            const mm = m[2].padStart(2, '0');
+            const dd = m[3].padStart(2, '0');
+            d = new Date(`${yyyy}-${mm}-${dd}`);
+            if (!isNaN(d.getTime())) return d;
+        }
+
+        // Try to parse common slash/dash formats like 07/21/2026 or 21/07/2026
+        m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/);
+        if (m) {
+            let part1 = parseInt(m[1], 10);
+            let part2 = parseInt(m[2], 10);
+            let part3 = parseInt(m[3], 10);
+            // Heuristic: if year is 2-digit, assume 2000+
+            if (part3 < 100) part3 += 2000;
+            // Determine if format is mm/dd/yyyy or dd/mm/yyyy -> if part1 > 12 then dd/mm
+            if (part1 > 12) {
+                d = new Date(part3, part2 - 1, part1);
+            } else {
+                d = new Date(part3, part1 - 1, part2);
+            }
+            if (!isNaN(d.getTime())) return d;
+        }
+
+        return null;
+    }
+
+    // Only include events whose end date is before today
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const visibleEvents = events.filter(ev => {
+        const dateStr = ev.dateEnd || ev.dateStart || '';
+        const endDate = parseDateString(dateStr);
+        if (!endDate) return false; // skip events without parseable end date
+        // If endDate is strictly before today, include
+        return endDate < today;
+    });
+
+    visibleEvents.forEach((event, idx) => {
         const card = document.createElement('div');
         card.className = 'card';
         card.dataset.index = idx;
@@ -389,6 +443,12 @@ function renderEvents(events) {
 
         viewEventCards.appendChild(card);
     });
+
+    // If no events to show, optionally show a note
+    if (visibleEvents.length === 0) {
+        viewEventCards.innerHTML = '<p style="color:#666; padding: 12px 16px;">目前沒有符合條件的活動。</p>';
+    }
+
     viewEventCards.classList.add("active");
 }
 
@@ -470,4 +530,3 @@ filterDistrictEl.addEventListener('change', applyAndRender);
 loadShops();
 loadEvents();
 loadfooter();
-
