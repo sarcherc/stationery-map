@@ -306,15 +306,31 @@ function renderEvents(events) {
     // helper: robust date parsing for a few common formats
     function parseDateString(s) {
         if (!s) return null;
-        // Try native parsing first
-        let d = new Date(s);
-        if (!isNaN(d.getTime())) return d;
 
         // Normalize full-width chars and trim
-        s = s.replace(/[／\\。]/g, '/').replace(/\u3000/g, ' ').trim();
+        s = s.toString().replace(/[／\\。]/g, '/').replace(/\u3000/g, ' ').trim();
 
-        // Try to extract YYYY MM DD
-        let m = s.match(/(\d{4})[^\d]?(\d{1,2})[^\d]?(\d{1,2})/);
+        // Collect date-like tokens (yyyy-mm-dd / yyyy/mm/dd / dd/mm/yyyy / mm/dd/yyyy)
+        const tokens = [];
+        let m;
+        const reYMD = /(\d{4}[^\d]\d{1,2}[^\d]\d{1,2})/g;          // 2026-07-12 or 2026/7/12
+        const reDMY = /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/g;       // 21/07/2026 or 07-21-2026
+
+        while ((m = reYMD.exec(s)) !== null) tokens.push(m[0]);
+        while ((m = reDMY.exec(s)) !== null) tokens.push(m[0]);
+
+        // If we found tokens, take the last one as the intended date (end date)
+        let token = tokens.length ? tokens[tokens.length - 1] : s;
+
+        // Strip surrounding non-date noise (keep digits, slash, dash, spaces)
+        token = token.replace(/[^\d\/\-\s]/g, '').trim();
+
+        // Try native parsing first
+        let d = new Date(token);
+        if (!isNaN(d.getTime())) return d;
+
+        // Try YYYY MM DD capture
+        m = token.match(/(\d{4})[^\d]?(\d{1,2})[^\d]?(\d{1,2})/);
         if (m) {
             const yyyy = m[1];
             const mm = m[2].padStart(2, '0');
@@ -323,15 +339,14 @@ function renderEvents(events) {
             if (!isNaN(d.getTime())) return d;
         }
 
-        // Try to parse common slash/dash formats like 07/21/2026 or 21/07/2026
-        m = s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})$/);
+        // Try dd/mm/yyyy or mm/dd/yyyy
+        m = token.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
         if (m) {
             let part1 = parseInt(m[1], 10);
             let part2 = parseInt(m[2], 10);
             let part3 = parseInt(m[3], 10);
-            // Heuristic: if year is 2-digit, assume 2000+
-            if (part3 < 100) part3 += 2000;
-            // Determine if format is mm/dd/yyyy or dd/mm/yyyy -> if part1 > 12 then dd/mm
+            if (part3 < 100) part3 += 2000; // two-digit year -> 20xx
+            // Heuristic: if part1 > 12 => day/month/year, else month/day/year
             if (part1 > 12) {
                 d = new Date(part3, part2 - 1, part1);
             } else {
@@ -348,7 +363,8 @@ function renderEvents(events) {
     today.setHours(0,0,0,0);
 
     const visibleEvents = events.filter(ev => {
-        const dateStr = ev.dateEnd || ev.dateStart || '';
+        // Prefer the sheet column name date_end, then fall back to other fields
+        const dateStr = ev.date_end || ev.dateEnd || ev.dateEndFormatted || ev.dateEndRaw || ev.dateEndString || ev.dateEnd || ev.dateEnd || ev.dateEnd || ev.dateStart || ev.dateStart || '';
         const endDate = parseDateString(dateStr);
         if (!endDate) return false; // skip events without parseable end date
         // If endDate is strictly before today, include
