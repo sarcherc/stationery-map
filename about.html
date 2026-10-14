@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" style="overflow-y: scroll;">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sarcherc.github.io/stationery-map/about.html">
+  <meta property="og:title" content="About - Indie Stationery Map">
+  <meta property="og:description" content="關於文具小店地圖與站長 S.ARCHER.C">
+  
+  <title data-i18n="aboutPageTitle">關於本站 - Indie Stationery Map</title>
+  <link rel="icon" type="image/png" href="./images/logo.png">
+  <link rel="stylesheet" href="stationery.css">
+</head>
+
+<body>
+  <header>
+    <div class="container-inline" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+      <div style="display: flex; align-items: center; cursor: pointer;" onclick="window.location.href='index.html'">
+        <img src="./images/logo.png" width="50" />
+        <h1 data-i18n="mainTitle" style="color: #6e380b;">文具小店地圖(香港)</h1>
+      </div>
+      <!-- 中英切換按鈕 -->
+      <button id="lang-toggle-btn" class="lang-btn">EN / 繁中</button>
+    </div>
+  </header>
+
+  <!-- 導航列（返回首頁用） -->
+  <div class="tabs">
+    <button class="tab-btn" onclick="window.location.href='index.html'" data-i18n="backHome">← 返回地圖</button>
+    <button class="tab-btn active" data-i18n="tabAbout">關於文具小店地圖(香港)</button>
+  </div>
+
+  <div class="container-bg" style="max-width: 800px; margin: 24px auto; padding: 24px; background:rgba(250, 246, 240, 0.5); border-radius: 12px; border: 1px solid #d4c4b2; color: rgb(69, 28, 3);">
+    
+    <section style="margin-bottom: 32px;">
+      <h2 style="border-bottom: 2px solid #d4c4b2; padding-bottom: 8px; margin-bottom: 16px;" data-i18n="aboutPageHeading">關於地圖 ‧ About This Map</h2>
+      <p style="line-height: 1.6; margin-bottom: 12px;" data-i18n="aboutPageDesc1">
+        為文具控留一個魔法角落🌟<br>
+        為純粹尋找文具的人提供一盞小路燈💡<br>
+        為小店們掛上清脆響亮的風鈴🎐<br>
+        為自己無處安放的整理癖找點意義🫧<br>
+      </p>
+      <p style="line-height: 1.6;" data-i18n="aboutPageDesc2">
+        謝謝每個愛文具的你💌<br>
+        鳴謝每個把小店地圖分享出去的文具人💌
+      </p>
+    </section>
+
+    <section>
+      <h2 style="border-bottom: 2px solid #d4c4b2; padding-bottom: 8px; margin-bottom: 16px; text-align:center" data-i18n="aboutMeHeading">關於我 ‧ About Me</h2>
+      <p style="line-height: 1.6; margin-bottom: 12px; text-align: center;" data-i18n="aboutMeDesc1">
+        <!-- 喜歡文字、剪貼紀錄。<br>
+        喜歡整理資料、整理空間，但比較懶。<br>
+        熱愛文具，鍾意買買買。<br> -->
+      </p>
+      <p style="line-height: 1.6; margin-bottom: 12px; text-align: center;">
+        Follow me on:<br>
+        <a href="https://www.instagram.com/s.archer.c/" target="_blank" rel="noopener" 
+           style="font-family: system-ui, -apple-system, sans-serif; font-style: normal; font-size: 14px; font-weight: 500; color: rgb(120, 60, 40); text-decoration: none; transition: color 0.2s ease;"
+           onmouseover="this.style.color='#e4405f'" onmouseout="this.style.color='rgb(120, 60, 40)'">Instagram</a> 
+           <span data-i18n="aboutMeInsNote"> - 多文具少說話</span>
+           <br>
+        <a href="https://www.threads.net/@s.archer.c" target="_blank" rel="noopener" 
+           style="font-family: system-ui, -apple-system, sans-serif; font-style: normal; font-size: 14px; font-weight: 500; color: rgb(120, 60, 40); text-decoration: none; transition: color 0.2s ease;"
+           onmouseover="this.style.color='#000000'" onmouseout="this.style.color='rgb(120, 60, 40)'">Threads</a> 
+           <span data-i18n="aboutMeThrNote"> - 多說話少文具</span>
+           <br>
+      </p>
+    </section>
+
+  </div>
+
+  <footer id="standardFooter" style="font-family: 'Trebuchet MS', Tahoma, sans-serif; font-size: 16px; color: rgb(69, 28, 3); text-align: center; padding: 20px 0; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+    <div style="font-style: italic;">S.ARCHER.C</div>
+    <div class="footer-links" style="display: inline-flex; align-items: center; gap: 8px;">
+      <a href="https://www.instagram.com/s.archer.c/" target="_blank" rel="noopener" style="font-family: system-ui, sans-serif; font-size: 14px; color: rgb(120, 60, 40); text-decoration: none;">Instagram</a>
+      <span style="opacity: 0.4; font-size: 12px;">|</span>
+      <a href="https://www.threads.net/@s.archer.c" target="_blank" rel="noopener" style="font-family: system-ui, sans-serif; font-size: 14px; color: rgb(120, 60, 40); text-decoration: none;">Threads</a>
+      <span style="opacity: 0.4; font-size: 12px;">|</span>
+      <a href="about.html" style="font-family: system-ui, sans-serif; font-size: 14px; color: rgb(120, 60, 40); text-decoration: none; font-weight: 600;" data-i18n="aboutMeLink">about me</a>
+    </div>
+  </footer>
+
+</body>
+
+<!-- 引入共用的 JS 處理語言切換 -->
+<script type="text/javascript" src="stationery.js"></script>
+<script type="text/javascript" src="translations.js"></script>
+</html>

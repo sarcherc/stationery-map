@@ -3,8 +3,9 @@
 提交小店或活動功能 - 2025.12.19<br>
 雙層地區filter - 2026.03.11<br>
 fix logo display when sharing<br>
+雙語版本, 電話版sorting/filtering縮放功能, 新增About頁面, footer更新 - 2026.10.14<br>
 
-即將包括: button new line, envent end date checking, 文創活動地圖<br>
+即將包括:envent end date checking, 文創活動地圖<br>
 即將更新: 地圖功能(gps to show); <br>
 
 歡迎文具控、文具達人、文具店主們提交小店&活動推薦

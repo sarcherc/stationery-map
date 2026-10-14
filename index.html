@@ -7,36 +7,38 @@
   
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://sarcherc.github.io/stationery-map/">
-  <meta property="og:title" content="文具小店地圖">
-  <meta property="og:description" content="喺地圖揾文具小店、查看小店清單及活動資訊。">
+  <meta property="og:title" content="Indie Stationery Map">
+  <meta property="og:description" content="Discover indie stationery shops, store directories, and stationery events on the map.">
   <meta property="og:image" content="https://sarcherc.github.io/stationery-map/images/logo.png">
 
-  
   <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="文具小店地圖">
-  <meta name="twitter:description" content="喺地圖揾文具小店、查看小店清單及活動資訊。">
+  <meta name="twitter:title" content="Indie Stationery Map">
+  <meta name="twitter:description" content="Discover indie stationery shops, store directories, and stationery events on the map.">
   <meta name="twitter:image" content="https://sarcherc.github.io/stationery-map/images/logo.png">
 
-  <title>文具小店地圖</title>
+  <title>文具小店地圖 Indie Stationery Store Map</title>
   <link rel="icon" type="image/png" href="./images/logo.png">
   <link rel="stylesheet" href="stationery.css">
 </head>
 
 <body>
   <header>
-    <div class="container-inline">
-      <img src="./images/logo.png" width="50" />
-      <h1>文具小店地圖</h1>
+    <div class="container-inline" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+      <div style="display: flex; align-items: center;">
+        <img src="./images/logo.png" width="50" />
+        <h1 data-i18n="mainTitle" style="color: #6e380b;">文具小店地圖(香港)</h1>
+      </div>
+      <!-- 中英切換按鈕 -->
+      <button id="lang-toggle-btn" class="lang-btn">EN / 繁中</button>
     </div>
-
   </header>
 
   <div class="tabs">
-    <button class="tab-btn active" data-tab="map">喺地圖揾小店</button>
-    <button class="tab-btn" data-tab="list">小店清單</button>
-    <button class="tab-btn" data-tab="event">活動</button>
-    <button class="tab-btn" data-tab="add">我要推薦</button>
-    <button class="tab-btn tab-coming" data-tab="coming" aria-disabled="true">[未推出]</button>
+    <button class="tab-btn active" data-tab="map" data-i18n="tabMap">喺地圖揾小店</button>
+    <button class="tab-btn" data-tab="list" data-i18n="tabList">小店清單</button>
+    <button class="tab-btn" data-tab="event" data-i18n="tabEvent">活動</button>
+    <button class="tab-btn" data-tab="add" data-i18n="tabAdd">我要推薦</button>
+    <button class="tab-btn tab-coming" data-tab="coming" aria-disabled="true" data-i18n="tabComing">[未推出]</button>
   </div>
 
   <div class="container-bg">
@@ -50,32 +52,48 @@
 
     <!-- tab2: cards -->
     <div class="view" id="view-list">
-      <div class="list-controls">
-        <label for="sort-key">排序：</label>
-        <select id="sort-name">
-          <option value="asc">Name（A→Z）</option>
-          <option value="desc">Name（Z→A）</option>
-        </select>
+      
+      <!-- 外層容器：將按鈕和面板黏合在一起 -->
+      <div class="filter-dropdown-container">
+        <button id="filter-toggle-btn" class="filter-toggle-btn">
+          ▼ Filters & Sorting
+        </button>
 
-        <label for="filter-category">類別：</label>
-        <select id="filter-category">
-          <option value="">全部類別</option>
-        </select>
+        <div class="list-controls" id="list-controls-panel">
+          <div class="control-row">
+            <label for="sort-name" data-i18n="labelSort">排序：</label>
+            <select id="sort-name">
+              <option value="asc" data-i18n="sortAsc">名稱（A→Z）</option>
+              <option value="desc" data-i18n="sortDesc">名稱（Z→A）</option>
+            </select>
+          </div>
 
-        <label for="filter-region">區域：</label>
-        <select id="filter-region">
-          <option value="">全部區域</option>
-        </select>
+          <div class="control-row">
+            <label for="filter-category" data-i18n="labelCategory">類別：</label>
+            <select id="filter-category">
+              <option value="" data-i18n="optionAllCategory">全部類別</option>
+            </select>
+          </div>
 
-        <span id="district-wrap" style="display:flex;">
-          <label for="filter-district">地區：</label>
-          <select id="filter-district">
-            <option value="">全部地區</option>
-          </select>
-        </span>
+          <div class="control-row">
+            <label for="filter-region" data-i18n="labelRegion">區域：</label>
+            <select id="filter-region">
+              <option value="" data-i18n="optionAllRegion">全部區域</option>
+            </select>
+          </div>
+
+          <div class="control-row" id="district-wrap">
+            <label for="filter-district" data-i18n="labelDistrict">地區：</label>
+            <select id="filter-district">
+              <option value="" data-i18n="optionAllDistrict">全部地區</option>
+            </select>
+          </div>
+        </div>
       </div>
+
       <div class="list-note">
-        <p style="color:brown">部分店家的營業時間不穩定或因應假期有所不同，請先參考店家IG公告，以免撲空。</p>
+        <p style="color:brown" data-i18n="listNote">部分店家的營業時間不穩定或因應假期有所不同，請先參考店家IG公告，以免撲空。</p>
+        <p style="color:brown" data-i18n="listNoteMap">提示：點擊任何店家卡片即可直接開啟 Google 地圖</p>
       </div>
 
       <div class="cards" id="cards"></div>
@@ -89,66 +107,43 @@
     <!-- tab4: Add -->
     <div class="view" id="view-add">
       <div class="tabs">
-        <button class="form-btn" data-form="shop">推薦店家</button>
-        <button class="form-btn" data-form="event">推薦活動</button>
+        <button class="form-btn active" data-form="shop" data-i18n="formShopBtn">推薦店家</button>
+        <button class="form-btn" data-form="event" data-i18n="formEventBtn">推薦活動</button>
       </div>
-      <div class="view" id="view-form-shop">
+      <div class="view active" id="view-form-shop">
         <iframe
           src="https://docs.google.com/forms/d/e/1FAIpQLScK4UVCy45GkB5FXCCbxondR-MQN4dsReOnAU5dJt9Dsj72rw/viewform?embedded=true"
-          width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
+          width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0" data-i18n-iframe="loadingShop">載入中…</iframe>
       </div>
       <div class="view" id="view-form-event">
         <iframe
           src="https://docs.google.com/forms/d/e/1FAIpQLSdB7BZO4mrtKToDkUI8ePyunrzAhDdpBPR69T476Sc-Tn8J9g/viewform?embedded=true"
-          width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0">載入中…</iframe>
+          width="100%" height="800" frameborder="0" marginheight="0" marginwidth="0" data-i18n-iframe="loadingEvent">載入中…</iframe>
       </div>
     </div>
 
     <!-- tab5: coming soon -->
     <div class="view" id="view-coming" hidden></div>
 
-    <footer id="standardFooter"  style="font-family: 'Trebuchet MS', Tahoma, sans-serif; font-size: 18px; font-style: italic; color: rgb(69, 28, 3);">
-      S.ARCHER.C
-      <a id="ig-link" href="https://www.instagram.com/s.archer.c/" target="_blank" rel="noopener" aria-label="Instagram" style="margin-left:8px; vertical-align: middle;"></a>
+<footer id="standardFooter" style="font-family: 'Trebuchet MS', Tahoma, sans-serif; font-size: 16px; color: rgb(69, 28, 3); text-align: center; padding: 20px 0; display: flex; flex-direction: column; align-items: center; gap: 6px;">
+      <div style="font-style: italic;">S.ARCHER.C</div>
+      <div class="footer-links" style="display: inline-flex; align-items: center; gap: 8px;">
+        <a href="https://www.instagram.com/s.archer.c/" target="_blank" rel="noopener" 
+           style="font-family: system-ui, -apple-system, sans-serif; font-style: normal; font-size: 14px; font-weight: 500; color: rgb(120, 60, 40); text-decoration: none; transition: color 0.2s ease;"
+           onmouseover="this.style.color='#e4405f'" onmouseout="this.style.color='rgb(120, 60, 40)'">Instagram</a>
+        <span style="font-style: normal; opacity: 0.4; font-size: 12px; color: rgb(69, 28, 3);">|</span>
+        <a href="https://www.threads.net/@s.archer.c" target="_blank" rel="noopener" 
+           style="font-family: system-ui, -apple-system, sans-serif; font-style: normal; font-size: 14px; font-weight: 500; color: rgb(120, 60, 40); text-decoration: none; transition: color 0.2s ease;"
+           onmouseover="this.style.color='#000000'" onmouseout="this.style.color='rgb(120, 60, 40)'">Threads</a>
+        <span style="font-style: normal; opacity: 0.4; font-size: 12px; color: rgb(69, 28, 3);">|</span>
+        <a href="about.html" 
+           style="font-family: system-ui, -apple-system, sans-serif; font-style: normal; font-size: 14px; font-weight: 600; color: rgb(120, 60, 40); text-decoration: none; transition: color 0.2s ease;"
+           onmouseover="this.style.color='rgb(69, 28, 3)'" onmouseout="this.style.color='rgb(120, 60, 40)'" data-i18n="aboutMeLink">about me</a>
+      </div>
     </footer>
   </div>
 
-
 </body>
 <script type="text/javascript" src="stationery.js"></script>
-
-<script>
-  // Insert Instagram icon into footer using createIcon('ig') from stationery.js
-  (function () {
-    try {
-      var link = document.getElementById('ig-link');
-      if (!link) return;
-
-      // If createIcon is already available, use it immediately
-      if (typeof createIcon === 'function') {
-        var icon = createIcon('ig');
-        if (icon instanceof Element) {
-          link.appendChild(icon);
-        } else if (typeof icon === 'string') {
-          link.innerHTML = icon;
-        }
-        return;
-      }
-
-      // Otherwise wait until the document is fully loaded and try again
-      function insertIcon() {
-        if (typeof createIcon !== 'function') return;
-        var icon = createIcon('ig');
-        if (icon instanceof Element) link.appendChild(icon);
-        else if (typeof icon === 'string') link.innerHTML = icon;
-        document.removeEventListener('DOMContentLoaded', insertIcon);
-      }
-      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', insertIcon);
-      else insertIcon();
-    } catch (e) {
-      console.error('Failed to insert Instagram icon:', e);
-    }
-  })();
-</script>
-
+<script type="text/javascript" src="translations.js"></script>
 </html>

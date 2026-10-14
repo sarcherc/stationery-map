@@ -1,3 +1,50 @@
+let currentLang = localStorage.getItem('stationery_map_lang') || 'zh';
+
+function setLanguage(lang) {
+    currentLang = lang;
+    localStorage.setItem('stationery_map_lang', lang);
+    document.documentElement.lang = lang === 'en' ? 'en' : 'zh-Hant';
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[currentLang][key]) {
+            el.innerHTML = translations[currentLang][key];
+        }
+    });
+
+    const toggleBtn = document.getElementById('lang-toggle-btn');
+    if (toggleBtn) {
+        toggleBtn.textContent = currentLang === 'zh' ? 'EN / 繁中' : '繁中 / EN';
+    }
+
+    if (typeof updateDropdowns === 'function') updateDropdowns();
+    if (typeof applyAndRender === 'function') applyAndRender();
+    if (typeof loadEvents === 'function' && window.rawEvents) renderEvents(window.rawEvents);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('lang-toggle-btn');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            setLanguage(currentLang === 'zh' ? 'en' : 'zh');
+        });
+    }
+    setLanguage(currentLang);
+
+    // 手機版篩選面板收合/展開邏輯
+    const filterToggleBtn = document.getElementById('filter-toggle-btn');
+    const controlsPanel = document.getElementById('list-controls-panel');
+
+    if (filterToggleBtn && controlsPanel) {
+        filterToggleBtn.addEventListener('click', () => {
+            controlsPanel.classList.toggle('expanded');
+            const isExpanded = controlsPanel.classList.contains('expanded');
+            const key = isExpanded ? 'filterToggleBtnClose' : 'filterToggleBtn';
+            filterToggleBtn.textContent = translations[currentLang][key];
+        });
+    }
+});
+
 // tab change
 function updateStickyOffsets() {
     const header = document.querySelector('header');
@@ -16,7 +63,7 @@ const views = {
     list: document.getElementById('view-list'),
     event: document.getElementById('view-event'),
     add: document.getElementById('view-add'),
-    coming: document.getElementById('view-coming') // coming soon
+    coming: document.getElementById('view-coming')
 };
 btns.forEach(btn => {
     btn.addEventListener('click', (e) => {
@@ -30,12 +77,10 @@ btns.forEach(btn => {
         btns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
 
-        // Remove 'active' from all views
         Object.values(views).forEach(view => {
             if (view) view.classList.remove('active');
         });
 
-        // Add 'active' to the target view
         views[tab].classList.add('active');
     });
 });
@@ -61,33 +106,116 @@ formBtns.forEach(btn => {
     });
 });
 
-// Shop cards
-function createIcon(type = 'web') {
+// 保留卡片內的網頁/IG圖標生成函式
+function createIcon(type = 'web', strokeColor = 'rgb(69, 28, 3)') {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', '18'); svg.setAttribute('height', '18'); svg.setAttribute('viewBox', '0 0 24 24');
-    svg.setAttribute('fill', 'none'); svg.setAttribute('stroke', type === 'ig' ? '#e4405f' : '#1e88e5');
-    svg.setAttribute('stroke-width', '2'); svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round');
+    svg.style.transition = 'stroke 0.2s ease, fill 0.2s ease';
+
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', type === 'ig'
-        ? 'M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12zm6.5-.75a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5z'
-        : 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 0s-4 3-4 10 4 10 4 10 4-3 4-10-4-10-4-10zm-9 10h18');
+
+    if (type === 'ig') {
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', strokeColor);
+        svg.setAttribute('stroke-width', '2'); svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round');
+        path.setAttribute('d', 'M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12zm6.5-.75a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5z');
+    } else {
+        svg.setAttribute('fill', 'none');
+        svg.setAttribute('stroke', strokeColor);
+        svg.setAttribute('stroke-width', '2');
+        path.setAttribute('d', 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 0s-4 3-4 10 4 10 4 10 4-3 4-10-4-10-4-10zm-9 10h18');
+    }
+
     svg.appendChild(path);
     return svg;
 }
+
 function safeText(t) { return (t ?? '').toString(); }
 
+let rawShops = [];
+let currentShops = [];
+let globalRegionDistrictsMap = {};
 
-let rawShops = [];       // original json
-let currentShops = [];   // use filter + sort
-
-// filter + sort 
-const sortNameEl = document.getElementById('sort-name');        // asc | desc
-const filterRegionEl = document.getElementById('filter-region'); // "All" or filtered region
+const sortNameEl = document.getElementById('sort-name');
+const filterRegionEl = document.getElementById('filter-region');
 const districtWrap = document.getElementById('district-wrap');
-const filterDistrictEl = document.getElementById('filter-district'); // "All" or filtered district
-const filterCategoryEl = document.getElementById('filter-category'); // "All" or filtered category
+const filterDistrictEl = document.getElementById('filter-district');
+const filterCategoryEl = document.getElementById('filter-category');
 
-// Render List
+function updateDropdowns() {
+    const currentRegion = filterRegionEl.value;
+    const currentDistrict = filterDistrictEl.value;
+    const currentCat = filterCategoryEl.value;
+
+    const allRegionText = currentLang === 'en' ? '▼ All Regions' : '▼ 全部區域';
+    const allDistrictText = currentLang === 'en' ? '▼ All Districts' : '▼ 全部地區';
+    const allCatText = currentLang === 'en' ? '▼ All Categories' : '▼ 全部類別';
+
+    filterRegionEl.innerHTML = `<option value="">${allRegionText}</option>`;
+    const regionsSet = new Set();
+    globalRegionDistrictsMap = {};
+
+    rawShops.forEach(s => {
+        const rawDist = (currentLang === 'en' && s['District_en']) ? s['District_en'].trim() : (s['District'] || '').trim();
+        if (!rawDist) return;
+
+        const parts = rawDist.split(/[,，]\s*/);
+        const r = parts[0];
+        const d = parts.length > 1 ? parts[1] : '';
+
+        regionsSet.add(r);
+        if (!globalRegionDistrictsMap[r]) globalRegionDistrictsMap[r] = new Set();
+        if (d) globalRegionDistrictsMap[r].add(d);
+    });
+
+    const regions = Array.from(regionsSet).sort((a, b) => a.localeCompare(b, currentLang === 'en' ? 'en' : 'zh-Hant', { sensitivity: 'base', numeric: true }));
+    regions.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r;
+        opt.textContent = r;
+        filterRegionEl.appendChild(opt);
+    });
+    filterRegionEl.value = currentRegion;
+
+    filterDistrictEl.innerHTML = `<option value="">${allDistrictText}</option>`;
+    const allDists = Array.from(new Set(Object.values(globalRegionDistrictsMap).flatMap(set => Array.from(set)))).sort((a, b) => a.localeCompare(b, currentLang === 'en' ? 'en' : 'zh-Hant', { sensitivity: 'base', numeric: true }));
+    
+    if (!currentRegion) {
+        allDists.forEach(d => {
+            if (d) {
+                const opt = document.createElement('option');
+                opt.value = d;
+                opt.textContent = d;
+                filterDistrictEl.appendChild(opt);
+            }
+        });
+    } else {
+        const dists = Array.from(globalRegionDistrictsMap[currentRegion] || []).sort((a, b) => a.localeCompare(b, currentLang === 'en' ? 'en' : 'zh-Hant', { sensitivity: 'base', numeric: true }));
+        dists.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            filterDistrictEl.appendChild(opt);
+        });
+    }
+    filterDistrictEl.value = currentDistrict;
+
+    filterCategoryEl.innerHTML = `<option value="">${allCatText}</option>`;
+    const categoriesSet = new Set();
+    rawShops.forEach(s => {
+        const cat = (currentLang === 'en' && s['Category_en']) ? s['Category_en'].trim() : (s['Category'] || '').trim();
+        if (cat) categoriesSet.add(cat);
+    });
+    const categories = Array.from(categoriesSet).sort((a, b) => a.localeCompare(b, currentLang === 'en' ? 'en' : 'zh-Hant', { sensitivity: 'base' }));
+    categories.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        filterCategoryEl.appendChild(opt);
+    });
+    filterCategoryEl.value = currentCat;
+}
+
 const cardsEl = document.getElementById('cards');
 function renderCards(shops) {
     cardsEl.innerHTML = '';
@@ -95,44 +223,47 @@ function renderCards(shops) {
         const card = document.createElement('div'); card.className = 'card'; card.dataset.index = idx;
 
         const logo = document.createElement('div'); logo.className = 'logo-wrap';
-        if (s.Logo) { const img = document.createElement('img'); img.src = s.Logo; img.alt = `${safeText(s['Name'])} 的標誌`; logo.appendChild(img); }
-        else { logo.textContent = '📚'; logo.setAttribute('aria-label', '無標誌'); }
+        if (s.Logo) { const img = document.createElement('img'); img.src = s.Logo; img.alt = `${safeText(s['Name'])} logo`; logo.appendChild(img); }
+        else { logo.textContent = '📚'; logo.setAttribute('aria-label', 'No logo'); }
 
         const body = document.createElement('div');
-        const h3 = document.createElement('h3'); h3.textContent = safeText(s['Name']);
-        const en = document.createElement('div'); en.className = 'en-name'; en.textContent = safeText(s['Name(English)']);
-        const addr = document.createElement('div'); addr.className = 'address'; addr.textContent = safeText(s['Address']);
-
-        const regionLine = document.createElement('span'); regionLine.className = 'en-name'; regionLine.textContent = safeText(s['District']);
-        const cat = document.createElement('span'); cat.className = 'category'; cat.textContent = safeText(s['Category']);
+        const h3 = document.createElement('h3'); 
+        h3.textContent = safeText((currentLang === 'en' && s['Name(English)']) ? s['Name(English)'] : s['Name']);
+        
+        const en = document.createElement('div'); en.className = 'en-name'; 
+        en.textContent = currentLang === 'en' ? safeText(s['Name']) : safeText(s['Name(English)']);
+        
+        const activeAddress = (currentLang === 'en' && s['Address_en']) ? s['Address_en'] : s['Address'];
+        const addr = document.createElement('div'); addr.className = 'address'; addr.textContent = safeText(activeAddress);
+        
+        const cat = document.createElement('span'); cat.className = 'category'; 
+        cat.textContent = safeText((currentLang === 'en' && s['Category_en']) ? s['Category_en'] : s['Category']);
 
         const links = document.createElement('div'); links.className = 'links';
-        if (s['Website']) { const aWeb = document.createElement('a'); aWeb.href = s['Website']; aWeb.target = '_blank'; aWeb.rel = 'noopener noreferrer'; aWeb.title = 'Website'; aWeb.appendChild(createIcon('web'));
-            links.appendChild(aWeb); }
-        if (s['IG']) { const aIg = document.createElement('a'); aIg.href = s['IG']; aIg.target = '_blank'; aIg.rel = 'noopener noreferrer'; aIg.title = 'Instagram'; aIg.appendChild(createIcon('ig'));
-            links.appendChild(aIg); }
+        if (s['Website']) { const aWeb = document.createElement('a'); aWeb.href = s['Website']; aWeb.target = '_blank'; aWeb.rel = 'noopener noreferrer'; aWeb.title = 'Website'; aWeb.appendChild(createIcon('web', '#1e88e5')); links.appendChild(aWeb); }
+        if (s['IG']) { const aIg = document.createElement('a'); aIg.href = s['IG']; aIg.target = '_blank'; aIg.rel = 'noopener noreferrer'; aIg.title = 'Instagram'; aIg.appendChild(createIcon('ig', '#e4405f')); links.appendChild(aIg); }
 
         body.appendChild(h3); body.appendChild(en); body.appendChild(addr); body.appendChild(cat); body.appendChild(links);
 
-        if (s['Remark']) { const note = document.createElement('div'); note.className = 'notice'; note.textContent = safeText(s['Remark']); body.appendChild(note); }
+        const activeRemark = (currentLang === 'en' && s['Remark_en']) ? s['Remark_en'] : s['Remark'];
+        if (activeRemark) { 
+            const note = document.createElement('div'); 
+            note.className = 'notice'; 
+            note.textContent = safeText(activeRemark); 
+            body.appendChild(note); 
+        }
 
         card.appendChild(logo); card.appendChild(body);
 
-        // Click card to open My Maps
         card.addEventListener('click', (e) => {
-            if (e.target.closest('.links a')) {
-                return;
-            }
-
+            if (e.target.closest('.links a')) return;
             if (s['MapSite']) { window.open(s['MapSite'], '_blank'); }
-
         });
 
         cardsEl.appendChild(card);
     });
 }
 
-// read json
 async function loadShops() {
     const url = 'https://docs.google.com/spreadsheets/d/1q1OCwmfDULPzFwB-X6hobEqiz7QTJkyO/gviz/tq?tqx=out:json';
 
@@ -144,96 +275,44 @@ async function loadShops() {
         let jsonText = text
             .trim()
             .replace(/^\/\*O_o\*\/\s*/g, '')
-            .replace(/^google\.visualization\.Query\.setResponse\(/, '')
-            .replace(/\);?$/, '');
+            .replace(/^google\.visualization\.Query\.setResponse\(/, '') .replace(/\);?$/, '');
 
         const data = JSON.parse(jsonText);
         const rows = data.table?.rows || [];
 
-        // Map Google Sheet columns to keys (Name, English Name, District, Address, Category, Website, IG, Logo, Remark, MapSite)
         rawShops = rows.map(row => ({
             "Name": row.c[2]?.v || "",
             "Name(English)": row.c[3]?.v || "",
             "Logo": row.c[4]?.v || "",
             "Address": row.c[5]?.v || "",
-            "District": row.c[6]?.v || "",
-            "Website": row.c[7]?.v || "",
-            "IG": row.c[8]?.v || "",
-            "Category": row.c[9]?.v || "",
-            "Remark": row.c[10]?.v || "",
-            "MapSite": row.c[12]?.v || ""
+            "Address_en": row.c[6]?.v || "",
+            "District": row.c[7]?.v || "",
+            "District_en": row.c[8]?.v || "",
+            "Website": row.c[9]?.v || "",
+            "IG": row.c[10]?.v || "",
+            "Category": row.c[11]?.v || "",
+            "Category_en": row.c[12]?.v || "",
+            "Remark": row.c[13]?.v || "",
+            "Remark_en": row.c[14]?.v || "",
+            "MapSite": row.c[16]?.v || ""
         }));
 
-        console.log('Raw shops data:', rawShops); // Check here — should show ALL rows from the sheet
-        // Skip header if first row is "Name"
         if (rawShops.length > 0 && rawShops[0].Name === "Name") {
             rawShops.shift();
         }
 
-        // district selection
-        const regionsSet = new Set();
-        const regionDistrictsMap = {};
+        updateDropdowns();
 
-        rawShops.forEach(s => {
-            const rawDist = (s.District || '').trim();
-            if (!rawDist) return;
-
-            // Split by comma or full-width comma
-            const parts = rawDist.split(/[,，]\s*/);
-            const r = parts[0];
-            const d = parts.length > 1 ? parts[1] : '';
-
-            regionsSet.add(r);
-            if (!regionDistrictsMap[r]) {
-                regionDistrictsMap[r] = new Set();
-            }
-            if (d) {
-                regionDistrictsMap[r].add(d);
-            }
-        });
-
-        const regions = Array.from(regionsSet).sort((a, b) => a.localeCompare(b, 'zh-Hant', { sensitivity: 'base', numeric: true }));
-
-        // grab regions
-        regions.forEach(r => {
-            const opt = document.createElement('option');
-            opt.value = r;
-            opt.textContent = r;
-            filterRegionEl.appendChild(opt);
-        });
-        
-        // initial populate all districts
-        const allDists = Array.from(new Set(Object.values(regionDistrictsMap).flatMap(set => Array.from(set)))).sort((a, b) => a.localeCompare(b, 'zh-Hant', { sensitivity: 'base', numeric: true }));
-        allDists.forEach(d => {
-            if (d) {
-                const opt = document.createElement('option');
-                opt.value = d;
-                opt.textContent = d;
-                filterDistrictEl.appendChild(opt);
-            }
-        });
-
-        // populate category dropdown
-        const categoriesSet = new Set();
-        rawShops.forEach(s => {
-            const cat = (s.Category || '').trim();
-            if (cat) categoriesSet.add(cat);
-        });
-        const categories = Array.from(categoriesSet).sort((a, b) => a.localeCompare(b, 'zh-Hant', { sensitivity: 'base' }));
-        categories.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c;
-            opt.textContent = c;
-            filterCategoryEl.appendChild(opt);
-        });
         filterCategoryEl.addEventListener('change', applyAndRender);
 
-        // on region change -> update district dropdown
         filterRegionEl.addEventListener('change', () => {
             const r = filterRegionEl.value;
-            filterDistrictEl.innerHTML = '<option value="">全部地區</option>';
+            const allText = currentLang === 'en' ? 'All Districts' : '全部地區';
+            filterDistrictEl.innerHTML = `<option value="">${allText}</option>`;
+            
+            const allDists = Array.from(new Set(Object.values(globalRegionDistrictsMap).flatMap(set => Array.from(set)))).sort((a, b) => a.localeCompare(b, currentLang === 'en' ? 'en' : 'zh-Hant', { sensitivity: 'base', numeric: true }));
+
             if (!r) {
-                // if no region is selected, show all districts again
                 allDists.forEach(d => {
                     if (d) {
                         const opt = document.createElement('option');
@@ -243,7 +322,7 @@ async function loadShops() {
                     }
                 });
             } else {
-                const dists = Array.from(regionDistrictsMap[r] || []).sort((a, b) => a.localeCompare(b, 'zh-Hant', { sensitivity: 'base', numeric: true }));
+                const dists = Array.from(globalRegionDistrictsMap[r] || []).sort((a, b) => a.localeCompare(b, currentLang === 'en' ? 'en' : 'zh-Hant', { sensitivity: 'base', numeric: true }));
                 dists.forEach(d => {
                     const opt = document.createElement('option');
                     opt.value = d;
@@ -257,40 +336,36 @@ async function loadShops() {
         applyAndRender();
     } catch (err) {
         console.error('Fail to load Google Sheet data:', err);
-        const warn = document.createElement('div');
-        warn.style.cssText = 'padding:12px 20px; color:#8a5300; background:#fff7e6; border:1px solid #ffe7ba; border-radius:8px; margin:12px 20px;';
-        warn.textContent = 'Fail to load data';
-        document.body.insertBefore(warn, document.querySelector('footer'));
     }
 }
 
-// filter, sort, render
 function applyAndRender() {
-    const sortDir = sortNameEl.value;        // 'asc' or 'desc'
+    const sortDir = sortNameEl.value;
     const region = filterRegionEl.value;
     const district = filterDistrictEl.value;
     const category = filterCategoryEl.value;
 
-    // 1) Filter by Region/District/Category
     const filtered = rawShops.filter(s => {
-        const rawDist = (s.District || '').trim();
-        
+        const rawDist = (currentLang === 'en' && s['District_en']) ? s['District_en'].trim() : (s['District'] || '').trim();
         const parts = rawDist.split(/[,，]\s*/);
         const r = parts[0];
         const d = parts.length > 1 ? parts[1] : '';
 
         if (region && r !== region) return false;
         if (district && d !== district) return false;
-        if (category && (s.Category || '').trim() !== category) return false;
+        
+        if (category) {
+            const sCat = (currentLang === 'en' && s['Category_en']) ? s['Category_en'].trim() : (s['Category'] || '').trim();
+            if (sCat !== category) return false;
+        }
         
         return true;
     });
 
-    // 2) Sort by Name
     const sorted = filtered.sort((A, B) => {
-        const a = A['Name(English)'] ?? '';
-        const b = B['Name(English)'] ?? '';
-        const base = a.localeCompare(b, 'zh-Hant', { sensitivity: 'base', numeric: true });
+        const a = (A['Name(English)'] && A['Name(English)'].trim() !== '') ? A['Name(English)'] : (A['Name'] ?? '');
+        const b = (B['Name(English)'] && B['Name(English)'].trim() !== '') ? B['Name(English)'] : (B['Name'] ?? '');
+        const base = a.localeCompare(b, 'en', { sensitivity: 'base', numeric: true });
         return sortDir === 'asc' ? base : -base;
     });
 
@@ -298,63 +373,27 @@ function applyAndRender() {
     renderCards(currentShops);
 }
 
-//render events
 function renderEvents(events) {
+    window.rawEvents = events;
     const viewEventCards = document.getElementById("event-cards");
     viewEventCards.innerHTML = '';
 
-    // helper: robust date parsing for a few common formats
     function parseDateString(s) {
         if (!s) return null;
-
-        // Normalize full-width chars and trim
         s = s.toString().replace(/[／\\。]/g, '/').replace(/\u3000/g, ' ').trim();
-
-        // Collect date-like tokens (yyyy-mm-dd / yyyy/mm/dd / dd/mm/yyyy / mm/dd/yyyy)
         const tokens = [];
         let m;
-        const reYMD = /(\d{4}[^\d]\d{1,2}[^\d]\d{1,2})/g;          // 2026-07-12 or 2026/7/12
-        const reDMY = /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/g;       // 21/07/2026 or 07-21-2026
+        const reYMD = /(\d{4}[^\d]\d{1,2}[^\d]\d{1,2})/g;
+        const reDMY = /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/g;
 
         while ((m = reYMD.exec(s)) !== null) tokens.push(m[0]);
         while ((m = reDMY.exec(s)) !== null) tokens.push(m[0]);
 
-        // If we found tokens, take the last one as the intended date (end date)
         let token = tokens.length ? tokens[tokens.length - 1] : s;
-
-        // Strip surrounding non-date noise (keep digits, slash, dash, spaces)
         token = token.replace(/[^\d\/\-\s]/g, '').trim();
 
-        // Try native parsing first
         let d = new Date(token);
         if (!isNaN(d.getTime())) return d;
-
-        // Try YYYY MM DD capture
-        m = token.match(/(\d{4})[^\d]?(\d{1,2})[^\d]?(\d{1,2})/);
-        if (m) {
-            const yyyy = m[1];
-            const mm = m[2].padStart(2, '0');
-            const dd = m[3].padStart(2, '0');
-            d = new Date(`${yyyy}-${mm}-${dd}`);
-            if (!isNaN(d.getTime())) return d;
-        }
-
-        // Try dd/mm/yyyy or mm/dd/yyyy
-        m = token.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
-        if (m) {
-            let part1 = parseInt(m[1], 10);
-            let part2 = parseInt(m[2], 10);
-            let part3 = parseInt(m[3], 10);
-            if (part3 < 100) part3 += 2000; // two-digit year -> 20xx
-            // Heuristic: if part1 > 12 => day/month/year, else month/day/year
-            if (part1 > 12) {
-                d = new Date(part3, part2 - 1, part1);
-            } else {
-                d = new Date(part3, part1 - 1, part2);
-            }
-            if (!isNaN(d.getTime())) return d;
-        }
-
         return null;
     }
 
@@ -365,72 +404,56 @@ function renderEvents(events) {
         return x;
     }
 
-    // Only include events whose end date is today or later
     const today = new Date();
     today.setHours(0,0,0,0);
 
-    // Build debug info and filter correctly
     const visibleEvents = events.filter(ev => {
-        // Prefer the sheet column name date_end, then fall back to other fields
-        const raw = ev.date_end ?? ev.dateEnd ?? ev.dateEndFormatted ?? ev.dateEndRaw ?? ev.dateEndString ?? ev.dateStart ?? ev.dateStart ?? '';
+        const raw = ev.date_end ?? ev.dateEnd ?? '';
         const parsed = parseDateString(raw);
         const endDate = toMidnight(parsed);
-
-        // Debug log to help diagnose mismatches (will appear in console)
-        console.debug('Event parse', { name: ev.name, rawDate: raw, parsed: parsed ? parsed.toISOString().slice(0,10) : null, include: !!(endDate && endDate >= today) });
-
-        if (!endDate) return false; // skip unparseable
-        // include events that end today or later; exclude strictly past
+        if (!endDate) return false;
         return endDate >= today;
     });
 
-    // Render only visibleEvents
     visibleEvents.forEach((event, idx) => {
         const card = document.createElement('div');
         card.className = 'card';
         card.dataset.index = idx;
 
-        // Logo / Icon placeholder (since events don't have logos, use calendar emoji)
         const logoWrap = document.createElement('div');
         logoWrap.className = 'logo-wrap';
-        logoWrap.textContent = '📅'; // Calendar icon
-        logoWrap.setAttribute('aria-label', '活動');
+        logoWrap.textContent = '📅';
 
-        // Card body
         const body = document.createElement('div');
         body.className = 'card-body';
 
-        // Event Name 
         const title = document.createElement('h3');
         title.className = 'event-title';
         title.textContent = safeText(event.name || '未命名活動');
 
-        // Date range
         const dateLine = document.createElement('div');
         dateLine.className = 'date-line';
         dateLine.innerHTML = `
-    ${safeText(event.dateStart)}
-    ${event.dateEnd && event.dateEnd !== event.dateStart ? ` – ${safeText(event.dateEnd)}` : ''}
-    <span class="weekday">${safeText(event.weekDay)}</span>
-    `;
+            ${safeText(event.dateStart)}
+            ${event.dateEnd && event.dateEnd !== event.dateStart ? ` – ${safeText(event.dateEnd)}` : ''}
+            <span class="weekday">${safeText(event.weekDay)}</span>
+        `;
 
-        // Venue
         const venue = document.createElement('div');
         venue.className = 'address';
         venue.textContent = safeText(event.venue || '');
 
-        // Address (if available)
-        const address = document.createElement('div'); address.className = 'address'; address.textContent = safeText(event.address);
+        const address = document.createElement('div'); 
+        address.className = 'address'; 
+        address.textContent = safeText(event.address);
 
-        // Host / Organizer
         const host = document.createElement('div');
-        host.className = 'address'; host.innerHTML = `主辦：${safeText(event.host)}`;
+        host.className = 'address'; 
+        host.innerHTML = `${currentLang === 'en' ? 'Organizer: ' : '主辦：'}${safeText(event.host)}`;
 
-        // Assemble body
         body.appendChild(title); body.appendChild(dateLine); body.appendChild(venue);
         body.appendChild(address); body.appendChild(host);
 
-        // Remark (e.g., entry fee)
         if (event.remark) {
             const remark = document.createElement('div');
             remark.className = 'notice';
@@ -438,7 +461,6 @@ function renderEvents(events) {
             body.appendChild(remark);
         }
 
-        // Links section
         const links = document.createElement('div');
         links.className = 'links';
 
@@ -447,8 +469,8 @@ function renderEvents(events) {
             aSite.href = event.site;
             aSite.target = '_blank';
             aSite.rel = 'noopener noreferrer';
-            aSite.title = '官方網站';
-            aSite.appendChild(createIcon('web'));
+            aSite.title = 'Official Website';
+            aSite.appendChild(createIcon('web', '#1e88e5'));
             links.appendChild(aSite);
         }
 
@@ -456,33 +478,26 @@ function renderEvents(events) {
             body.appendChild(links);
         }
 
-        // Assemble card
         card.appendChild(logoWrap); card.appendChild(body);
 
-        // Click handling: open map link, unless clicking a link inside
         card.addEventListener('click', (e) => {
-            if (e.target.closest('.links a')) return; // let link handle itself
-
+            if (e.target.closest('.links a')) return;
             if (event.mapSite) {
                 window.open(event.mapSite, '_blank');
             }
         });
 
-        // Add cursor pointer for better UX
         card.style.cursor = event.mapSite ? 'pointer' : 'default';
-
         viewEventCards.appendChild(card);
     });
 
-    // If no events to show, optionally show a note
     if (visibleEvents.length === 0) {
-        viewEventCards.innerHTML = '<p style="color:#666; padding: 12px 16px;">目前沒有符合條件的活動。</p>';
+        viewEventCards.innerHTML = `<p style="color:white; padding: 12px 16px;">${translations[currentLang].noEvents}</p>`;
     }
 
     viewEventCards.classList.add("active");
 }
 
-// read sheet to json
 async function loadEvents() {
     const url = 'https://docs.google.com/spreadsheets/d/1Nch0RpHdftPL4GGANMvLUaL9uFKjzBIoKInhef3wXDk/gviz/tq?tqx=out:json&sheet=event&gid=0';
 
@@ -492,26 +507,16 @@ async function loadEvents() {
             return res.text();
         })
         .then(text => {
-            try {
-                // Safely strip common wrappers
-                let jsonText = text
-                    .trim()
-                    .replace(/^\/\*O_o\*\/\s*/g, '')  // remove optional /*O_o*/
-                    .replace(/^google\.visualization\.Query\.setResponse\(/, '')
-                    .replace(/\);?$/, '');
+            let jsonText = text
+                .trim()
+                .replace(/^\/\*O_o\*\/\s*/g, '')
+                .replace(/^google\.visualization\.Query\.setResponse\(/, '') .replace(/\);?$/, '');
 
-                return JSON.parse(jsonText);
-            } catch (e) {
-                console.error('Parse failed on:', text.substring(0, 200) + '...');
-                throw e;
-            }
+            return JSON.parse(jsonText);
         })
         .then(data => {
             const rows = data.table?.rows || [];
-            // Skip header row (first row) if exists
-            const dataRows = rows;
-
-            const parsed = dataRows.map(row => ({
+            const parsed = rows.map(row => ({
                 name: row.c[0]?.v || "--",
                 dateStart: row.c[1]?.f || row.c[1]?.v || "",
                 dateEnd: row.c[2]?.f || row.c[2]?.v || "",
@@ -526,38 +531,18 @@ async function loadEvents() {
                 type: row.c[10]?.v || ""
             }));
 
-            console.log('Parsed events:', parsed); // Check here — should show ALL events
-            console.log('Total rows from sheet (incl header):', data.table.rows.length);
-            console.log('Data rows after slice:', rows.length);
-            console.log('Parsed events:', parsed);
             renderEvents(parsed);
         })
         .catch(err => {
             console.error('Load events error:', err);
             const viewEventCards = document.getElementById("event-cards");
-            if (viewEventCards) viewEventCards.innerHTML = "<p style='color:red;'>載入失敗，請刷新重試</p>";
+            if (viewEventCards) viewEventCards.innerHTML = `<p style='color:red;'>${translations[currentLang].loadFailed}</p>`;
         });
 }
 
-async function loadfooter() {
-    /* const footer = document.getElementById("standardFooter");
-    const aIg = document.createElement('a');
-    aIg.href = "https://www.instagram.com/s.archer.c/";
-    aIg.target = '_blank';
-    aIg.rel = 'noopener noreferrer';
-    aIg.title = '官方網站';
-    aIg.appendChild(createIcon('ig'));
-
-
-    footer.appendChild(aIg); */
-}
-
-// event listener
 sortNameEl.addEventListener('change', applyAndRender);
 filterRegionEl.addEventListener('change', applyAndRender);
 filterDistrictEl.addEventListener('change', applyAndRender);
 
-// load
 loadShops();
 loadEvents();
-loadfooter();
