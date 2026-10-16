@@ -380,19 +380,9 @@ function renderEvents(events) {
 
     function parseDateString(s) {
         if (!s) return null;
-        s = s.toString().replace(/[／\\。]/g, '/').replace(/\u3000/g, ' ').trim();
-        const tokens = [];
-        let m;
-        const reYMD = /(\d{4}[^\d]\d{1,2}[^\d]\d{1,2})/g;
-        const reDMY = /(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4})/g;
-
-        while ((m = reYMD.exec(s)) !== null) tokens.push(m[0]);
-        while ((m = reDMY.exec(s)) !== null) tokens.push(m[0]);
-
-        let token = tokens.length ? tokens[tokens.length - 1] : s;
-        token = token.replace(/[^\d\/\-\s]/g, '').trim();
-
-        let d = new Date(token);
+        s = s.toString().trim();
+        // 既然已經是標準的 YYYY-MM-DD 或類似格式，直接放入 Date 即可
+        const d = new Date(s);
         if (!isNaN(d.getTime())) return d;
         return null;
     }
@@ -408,9 +398,21 @@ function renderEvents(events) {
     today.setHours(0,0,0,0);
 
     const visibleEvents = events.filter(ev => {
-        const raw = ev.date_end ?? ev.dateEnd ?? '';
-        const parsed = parseDateString(raw);
-        const endDate = toMidnight(parsed);
+        const dateEndVal = ev.date_end ?? ev.dateEnd ?? '';
+        const dateStartVal = ev.dateStart ?? '';
+        
+        console.log("處理活動:", ev.name);
+        console.log("原始 End:", dateEndVal, "原始 Start:", dateStartVal);
+
+        const parsedEnd = parseDateString(dateEndVal);
+        const parsedStart = parseDateString(dateStartVal);
+        
+        console.log("Parsed End:", parsedEnd, "Parsed Start:", parsedStart);
+
+        const endDate = toMidnight(parsedEnd) || toMidnight(parsedStart);
+        console.log("最終計算出的 endDate:", endDate, "今天 (today):", today);
+        console.log("是否 >= 今天:", endDate >= today);
+        
         if (!endDate) return false;
         return endDate >= today;
     });
@@ -516,20 +518,38 @@ async function loadEvents() {
         })
         .then(data => {
             const rows = data.table?.rows || [];
-            const parsed = rows.map(row => ({
-                name: row.c[0]?.v || "--",
-                dateStart: row.c[1]?.f || row.c[1]?.v || "",
-                dateEnd: row.c[2]?.f || row.c[2]?.v || "",
-                date_end: row.c[2]?.f || row.c[2]?.v || "",
-                weekDay: row.c[3]?.v || "",
-                venue: row.c[4]?.v || "",
-                address: row.c[5]?.v || "",
-                mapSite: row.c[6]?.v || "",
-                host: row.c[7]?.v || "",
-                site: row.c[8]?.v || "",
-                remark: row.c[9]?.v || "",
-                type: row.c[10]?.v || ""
-            }));
+            const parsed = rows.map(row => {
+                // 專門處理 Google Sheets 回傳的 Date(yyyy,m,d) 格式
+                function parseGvizDate(cell) {
+                    if (!cell) return "";
+                    if (cell.f) return cell.f; // 優先使用格式化好的字串（如 "2026-10-15"）
+                    if (cell.v && typeof cell.v === 'string' && cell.v.startsWith('Date(')) {
+                        const parts = cell.v.match(/\d+/g);
+                        if (parts && parts.length >= 3) {
+                            const y = parts[0];
+                            const m = String(parseInt(parts[1]) + 1).padStart(2, '0'); // JS 月份從0開始，gviz也是
+                            const d = String(parseInt(parts[2])).padStart(2, '0');
+                            return `${y}-${m}-${d}`;
+                        }
+                    }
+                    return cell.v || "";
+                }
+
+                return {
+                    name: row.c[0]?.v || "--",
+                    dateStart: parseGvizDate(row.c[1]),
+                    dateEnd: parseGvizDate(row.c[2]),
+                    date_end: parseGvizDate(row.c[2]),
+                    weekDay: row.c[3]?.v || "",
+                    venue: row.c[4]?.v || "",
+                    address: row.c[5]?.v || "",
+                    mapSite: row.c[6]?.v || "",
+                    host: row.c[7]?.v || "",
+                    site: row.c[8]?.v || "",
+                    remark: row.c[9]?.v || "",
+                    type: row.c[10]?.v || ""
+                };
+            });
 
             renderEvents(parsed);
         })
