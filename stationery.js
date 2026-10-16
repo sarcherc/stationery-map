@@ -373,6 +373,23 @@ function applyAndRender() {
     renderCards(currentShops);
 }
 
+// 動態注入閃爍特效的 CSS Style
+if (!document.getElementById('today-badge-style')) {
+    const style = document.createElement('style');
+    style.id = 'today-badge-style';
+    style.innerHTML = `
+        @keyframes todayGlow {
+            0% { opacity: 1; transform: scale(1); box-shadow: 0 0 4px rgba(229, 57, 53, 0.6); }
+            50% { opacity: 0.5; transform: scale(0.96); box-shadow: 0 0 12px rgba(229, 57, 53, 0.9); }
+            100% { opacity: 1; transform: scale(1); box-shadow: 0 0 4px rgba(229, 57, 53, 0.6); }
+        }
+        .today-badge-flash {
+            animation: todayGlow 1.5s infinite ease-in-out;
+        }
+    `;
+    document.head.appendChild(style);
+}
+
 function renderEvents(events) {
     window.rawEvents = events;
     const viewEventCards = document.getElementById("event-cards");
@@ -381,7 +398,6 @@ function renderEvents(events) {
     function parseDateString(s) {
         if (!s) return null;
         s = s.toString().trim();
-        // 既然已經是標準的 YYYY-MM-DD 或類似格式，直接放入 Date 即可
         const d = new Date(s);
         if (!isNaN(d.getTime())) return d;
         return null;
@@ -397,24 +413,25 @@ function renderEvents(events) {
     const today = new Date();
     today.setHours(0,0,0,0);
 
+    // 1. 篩選出未過期的活動
     const visibleEvents = events.filter(ev => {
         const dateEndVal = ev.date_end ?? ev.dateEnd ?? '';
         const dateStartVal = ev.dateStart ?? '';
         
-        console.log("處理活動:", ev.name);
-        console.log("原始 End:", dateEndVal, "原始 Start:", dateStartVal);
-
         const parsedEnd = parseDateString(dateEndVal);
         const parsedStart = parseDateString(dateStartVal);
         
-        console.log("Parsed End:", parsedEnd, "Parsed Start:", parsedStart);
-
         const endDate = toMidnight(parsedEnd) || toMidnight(parsedStart);
-        console.log("最終計算出的 endDate:", endDate, "今天 (today):", today);
-        console.log("是否 >= 今天:", endDate >= today);
-        
         if (!endDate) return false;
+        
         return endDate >= today;
+    });
+
+    // 2. 依照開始日期（dateStart）進行排序（由近到遠）
+    visibleEvents.sort((a, b) => {
+        const dateA = toMidnight(parseDateString(a.dateStart)) || new Date(8640000000000000);
+        const dateB = toMidnight(parseDateString(b.dateStart)) || new Date(8640000000000000);
+        return dateA - dateB;
     });
 
     visibleEvents.forEach((event, idx) => {
@@ -429,9 +446,40 @@ function renderEvents(events) {
         const body = document.createElement('div');
         body.className = 'card-body';
 
+        // 標題與 TODAY 標籤容器
+        const titleRow = document.createElement('div');
+        titleRow.style.display = 'flex';
+        titleRow.style.alignItems = 'center';
+        titleRow.style.gap = '8px';
+        titleRow.style.flexWrap = 'wrap';
+
         const title = document.createElement('h3');
         title.className = 'event-title';
+        title.style.margin = '0';
         title.textContent = safeText(event.name || '未命名活動');
+        titleRow.appendChild(title);
+
+        // 檢查今天是否在活動期間內 (startDate <= today <= endDate)
+        const startDateObj = toMidnight(parseDateString(event.dateStart));
+        const endDateObj = toMidnight(parseDateString(event.date_end ?? event.dateEnd));
+        
+        const effectiveStart = startDateObj || endDateObj;
+        const effectiveEnd = endDateObj || startDateObj;
+
+        if (effectiveStart && effectiveEnd && today >= effectiveStart && today <= effectiveEnd) {
+            const todayBadge = document.createElement('span');
+            todayBadge.textContent = 'TODAY';
+            todayBadge.className = 'today-badge-flash'; // 套用閃爍特效 class
+            todayBadge.style.backgroundColor = '#e53935'; 
+            todayBadge.style.color = '#fff';
+            todayBadge.style.fontSize = '0.75rem';
+            todayBadge.style.fontWeight = 'bold';
+            todayBadge.style.padding = '2px 8px';
+            todayBadge.style.borderRadius = '4px';
+            todayBadge.style.letterSpacing = '0.5px';
+            todayBadge.style.display = 'inline-block';
+            titleRow.appendChild(todayBadge);
+        }
 
         const dateLine = document.createElement('div');
         dateLine.className = 'date-line';
@@ -453,8 +501,11 @@ function renderEvents(events) {
         host.className = 'address'; 
         host.innerHTML = `${currentLang === 'en' ? 'Organizer: ' : '主辦：'}${safeText(event.host)}`;
 
-        body.appendChild(title); body.appendChild(dateLine); body.appendChild(venue);
-        body.appendChild(address); body.appendChild(host);
+        body.appendChild(titleRow); 
+        body.appendChild(dateLine); 
+        body.appendChild(venue);
+        body.appendChild(address); 
+        body.appendChild(host);
 
         if (event.remark) {
             const remark = document.createElement('div');
@@ -519,15 +570,14 @@ async function loadEvents() {
         .then(data => {
             const rows = data.table?.rows || [];
             const parsed = rows.map(row => {
-                // 專門處理 Google Sheets 回傳的 Date(yyyy,m,d) 格式
                 function parseGvizDate(cell) {
                     if (!cell) return "";
-                    if (cell.f) return cell.f; // 優先使用格式化好的字串（如 "2026-10-15"）
+                    if (cell.f) return cell.f;
                     if (cell.v && typeof cell.v === 'string' && cell.v.startsWith('Date(')) {
                         const parts = cell.v.match(/\d+/g);
                         if (parts && parts.length >= 3) {
                             const y = parts[0];
-                            const m = String(parseInt(parts[1]) + 1).padStart(2, '0'); // JS 月份從0開始，gviz也是
+                            const m = String(parseInt(parts[1]) + 1).padStart(2, '0');
                             const d = String(parseInt(parts[2])).padStart(2, '0');
                             return `${y}-${m}-${d}`;
                         }
