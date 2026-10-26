@@ -7,18 +7,28 @@
   
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://sarcherc.github.io/stationery-map/">
-  <meta property="og:title" content="Indie Stationery Map">
-  <meta property="og:description" content="Discover indie stationery shops, store directories, and stationery events on the map.">
-  <meta property="og:image" content="https://sarcherc.github.io/stationery-map/images/logo.png">
+  <meta property="og:title" content="香港文具與手帳地圖 | 鋼筆、印章、選物店指南">
+  <meta property="og:description" content="專為文具控與手帳愛好者而設！輕鬆發掘香港隱世文具店、風格選物店、印章與文創周邊實體店。">
+  <meta property="og:image" content="https://你的網址.com/images/og-preview.jpg">
 
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Indie Stationery Map">
-  <meta name="twitter:description" content="Discover indie stationery shops, store directories, and stationery events on the map.">
-  <meta name="twitter:image" content="https://sarcherc.github.io/stationery-map/images/logo.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="香港文具與手帳地圖 | 鋼筆、印章、選物店指南">
+  <meta name="twitter:description" content="專為文具控與手帳愛好者而設！輕鬆發掘香港隱世文具店、風格選物店、印章與文創周邊實體店。">
+  <meta name="twitter:image" content="https://你的網址.com/images/og-preview.jpg">
 
   <title>文具小店地圖 Indie Stationery Store Map</title>
   <link rel="icon" type="image/png" href="./images/logo.png">
   <link rel="stylesheet" href="stationery.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+  <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+  <!-- 引入 Lora (英文) 同 LXGW WenKai TC (繁體中文) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=LXGW+WenKai+TC:wght@400;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -42,11 +52,29 @@
   </div>
 
   <div class="container-bg">
-    <!-- tab1: My Maps iframe -->
-    <div class="view active" id="view-map">
-      <div class="map-embed">
-        <iframe src="https://www.google.com/maps/d/u/0/embed?mid=1usi5s5bBx0jkn_Fx-v5qyVJhRCybRgQ"
-          class="api-hint">✅</iframe>
+<!-- tab1: OSM map -->
+    <div class="view active" id="view-map" style="position: relative;">
+      
+      <!-- 地圖左上角：自訂圖片下拉選單 -->
+      <div style="position: absolute; top: 15px; left: 15px; z-index: 1000; background: transparent; display: flex; align-items: center; gap: 5px;">
+          <label data-i18n="labelCategory" style="color: #4a433a; font-weight: bold; text-shadow: 1px 1px 3px rgba(255,255,255,0.9);">類別：</label>
+          
+          <div id="custom-map-dropdown" class="custom-dropdown">
+              <!-- 顯示當前選擇嘅部分 -->
+              <div class="dropdown-selected">
+                  <img src="" class="dropdown-icon" style="display: none;">
+                  <span class="dropdown-text" data-i18n="optionAllCategory">全部類別</span>
+                  <span class="dropdown-arrow">▼</span>
+              </div>
+              <!-- 下拉清單 (預設隱藏) -->
+              <div class="dropdown-list">
+                  <!-- JS 會自動將圖釘同文字塞入嚟 -->
+              </div>
+          </div>
+      </div>
+
+      <div class="map-embed" style="height: 70vh;">
+        <div id="leaflet-map" style="width: 100%; height: 100%; z-index: 1;"></div>
       </div>
     </div>
 
