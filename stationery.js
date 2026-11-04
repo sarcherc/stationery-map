@@ -1,5 +1,164 @@
 let currentLang = localStorage.getItem('stationery_map_lang') || 'zh';
 
+let myMap = null;
+let markersLayer = null;
+
+let allMarkers = [];
+
+// 1. 全域只 Declare 一次圖片路徑 (統一管理，以後改圖/加類別淨係改呢度)
+const GLOBAL_CATEGORY_PINS = {
+	'文具選物店': './images/pin_1.png',
+	'民生文具店': './images/pin_2.png',
+	'風格文具店': './images/pin_3.png',
+	'筆店': './images/pin_4.png',
+	'文具博物館': './images/pin_5.png',
+	'default': './images/pin_1.png'
+};
+
+// 2. 共用嘅陰影設定
+const commonIconOptions = {
+    iconSize: [50, 50],
+    iconAnchor: [0, 50],
+    popupAnchor: [0, -50]
+};
+
+// 3. 自動生成地圖用嘅 L.icon 字典 (唔使再人手逐個慢慢打)
+const categoryIcons = {};
+for (const [catName, imgPath] of Object.entries(GLOBAL_CATEGORY_PINS)) {
+    categoryIcons[catName] = L.icon({ iconUrl: imgPath, ...commonIconOptions });
+}
+
+let userMarker = null;
+
+function initMap() {
+    myMap = L.map('leaflet-map').setView([22.3193, 114.1694], 11);
+    myMap.zoomControl.setPosition('topright');
+
+    L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors, Tiles style by HOT',
+        detectRetina: true  // 自動偵測並為高解像度螢幕載入更清晰嘅地圖
+    }).addTo(myMap);
+
+    // Group
+    markersLayer = L.markerClusterGroup({
+        showCoverageOnHover: false, // 隱藏滑鼠移上去時嘅藍色範圍線，保持畫面復古感
+        maxClusterRadius: 30,       // 數字越細，圖釘要越近先會合體 (預設係 80)
+        spiderfyOnMaxZoom: true,     // 如果放到最大都仲疊住，點擊會好似蜘蛛網咁散開
+        disableClusteringAtZoom: 16
+    }).addTo(myMap);
+
+    const zoomControl = document.querySelector('.leaflet-control-zoom');
+    if (zoomControl) {
+        const locateBtn = document.createElement('a');
+        locateBtn.href = "#";
+        locateBtn.title = currentLang === 'en' ? "Show My Location" : "顯示我的位置";
+        // 用 Flexbox 令個 Icon 完美置中
+        locateBtn.style.display = "flex";
+        locateBtn.style.justifyContent = "center";
+        locateBtn.style.alignItems = "center";
+        
+        // 紙飛機 SVG，縮細少少等佢同 + / - 嘅比例一致
+        locateBtn.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>`;
+        
+        locateBtn.addEventListener('click', function(e) {
+            e.preventDefault(); // 防止畫面跳上頂
+            myMap.locate({setView: true, maxZoom: 15});
+        });
+        
+        // 塞入放大縮小面板嘅最尾
+        zoomControl.appendChild(locateBtn);
+    }
+
+    // 3. 處理成功定位後嘅動作 (畫圓點)
+    myMap.on('locationfound', function(e) {
+        if (userMarker) {
+            myMap.removeLayer(userMarker);
+        }
+        
+        // 畫一個橙色圓點
+        userMarker = L.circleMarker(e.latlng, {
+            radius: 8,
+            fillColor: "#e67e22",
+            color: "#fff",
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.9
+        }).addTo(myMap);
+
+        const locText = currentLang === 'en' ? "You are here!" : "你喺呢度！";
+        userMarker.bindPopup(`<div style="font-family: inherit; font-size: 14px; font-weight: bold; color: #451c03; text-align: center;">${locText}</div>`).openPopup();
+    });
+
+    // 4. 處理定位失敗
+    myMap.on('locationerror', function(e) {
+        const errorMsg = currentLang === 'en' ? "Cannot access your location. Please check browser permissions." : "無法獲取位置，請檢查瀏覽器權限設定。";
+        alert(errorMsg);
+    });
+}
+
+function updateMap(shops) {
+    if (!myMap) initMap();
+    markersLayer.clearLayers(); //Clear
+
+    shops.forEach(s => {
+        if (s.Lat && s.Lng) {
+           // const marker = L.marker([parseFloat(s.Lat), parseFloat(s.Lng)], { icon: customIcon });
+            
+            const shopName = (currentLang === 'en' && s['Name(English)']) ? s['Name(English)'] : s['Name'];
+            const address = (currentLang === 'en' && s['Address_en']) ? s['Address_en'] : s['Address'];
+            const category = (currentLang === 'en' && s['Category_en']) ? s['Category_en'] : s['Category'];
+            
+            //for new markers
+            const rawCategory = s['Category'] ? s['Category'].trim() : '';
+            const selectedIcon = categoryIcons[rawCategory] || categoryIcons['default'];
+            const marker = L.marker([parseFloat(s.Lat), parseFloat(s.Lng)], { icon: selectedIcon });
+
+            // Popup 
+            const logoHtml = s.Logo ? `<img src="${s.Logo}" style="width:100%; max-height:120px; object-fit:contain; margin-bottom:8px; border-radius:4px;">` : '';
+            const navText = currentLang === 'en' ? 'Google Maps Navigation' : 'Google Maps 導航';
+            const remarkText = currentLang === 'en' ? s.Remark_en : s.Remark;
+            
+            const igIconHtml = createIcon('ig').outerHTML;
+            const webIconHtml = createIcon('web').outerHTML;
+            const linkBtn = s.IG ? `<a href="${s.IG}" target="_blank" style="padding: 4px; display: flex; justify-content: center; align-items: center; text-decoration:none; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.7" onmouseout="this.style.opacity=1">
+                ${igIconHtml}
+            </a>` : '';
+
+            const navBtn = s.MapSite ? `<a href="${s.MapSite}" target="_blank" style="flex: 1; gap: 5px; padding: 6px; background:#6e380b; color:#fff; text-decoration:none; border-radius:4px; font-size: 12px; display: flex; justify-content: center; align-items: center; box-sizing:border-box;">
+                ${navText}
+            </a>` : '';
+            const buttonsHtml = `
+                <div style="display: flex; gap: 8px; width: 100%; box-sizing: border-box;">
+                    ${navBtn}
+                    ${linkBtn}
+                </div>
+            `;
+
+            const popupContent = `
+                <div style="min-width: 200px; font-family: inherit;">
+                    ${logoHtml}
+                    <h3 style="margin: 0 0 5px 0; color: #6e380b; font-size: 16px;">${shopName}</h3>
+                    <span style="display:inline-block; background:#f0e4d8; color:#6e380b; padding:2px 6px; border-radius:4px; font-size:12px; margin-bottom:6px;">${category}</span>
+                    <p style="margin: 0 0 10px 0; font-size: 13px; color: #555;">${address}</p>
+                    
+                    <!-- Remark 部分 -->
+                    ${remarkText ? `<p style="margin: 0 0 10px 0; font-size: 12px; color: #8b5a2b; font-style: italic; background: #fdf8e6; padding: 5px; border-radius: 4px;">* ${remarkText}</p>` : ''}
+                    
+                    <!-- 呢度放排好咗嘅按鈕 -->
+                    ${buttonsHtml}
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+            markersLayer.addLayer(marker);
+            marker.shopData = s; 
+            allMarkers.push(marker);
+           // marker.addTo(myMap);
+        }
+    });
+}
+
 function setLanguage(lang) {
     currentLang = lang;
     localStorage.setItem('stationery_map_lang', lang);
@@ -82,6 +241,12 @@ btns.forEach(btn => {
         });
 
         views[tab].classList.add('active');
+        // 修正 Leaflet 在隱藏 div 顯示時會出現「灰塊」的問題
+        if (tab === 'map' && myMap) {
+            setTimeout(() => {
+                myMap.invalidateSize();
+            }, 100);
+        }
     });
 });
 
@@ -106,23 +271,26 @@ formBtns.forEach(btn => {
     });
 });
 
-// 保留卡片內的網頁/IG圖標生成函式
 function createIcon(type = 'web', strokeColor = 'rgb(69, 28, 3)') {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', '18'); svg.setAttribute('height', '18'); svg.setAttribute('viewBox', '0 0 24 24');
     svg.style.transition = 'stroke 0.2s ease, fill 0.2s ease';
 
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    
+    // 統一設定 (所有 Icon 都用得著)
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', strokeColor);
+    svg.setAttribute('stroke-width', '2'); 
+    svg.setAttribute('stroke-linecap', 'round'); 
+    svg.setAttribute('stroke-linejoin', 'round');
 
     if (type === 'ig') {
-        svg.setAttribute('fill', 'none');
-        svg.setAttribute('stroke', strokeColor);
-        svg.setAttribute('stroke-width', '2'); svg.setAttribute('stroke-linecap', 'round'); svg.setAttribute('stroke-linejoin', 'round');
         path.setAttribute('d', 'M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5zm5 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12zm6.5-.75a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5z');
+    } else if (type === 'blog') {
+        // 新增：鋼筆寫字 Icon (代表 Blog/文章)
+        path.setAttribute('d', 'M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z');
     } else {
-        svg.setAttribute('fill', 'none');
-        svg.setAttribute('stroke', strokeColor);
-        svg.setAttribute('stroke-width', '2');
         path.setAttribute('d', 'M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 0s-4 3-4 10 4 10 4 10 4-3 4-10-4-10-4-10zm-9 10h18');
     }
 
@@ -147,15 +315,37 @@ function updateDropdowns() {
     const currentDistrict = filterDistrictEl.value;
     const currentCat = filterCategoryEl.value;
 
-    const allRegionText = currentLang === 'en' ? '▼ All Regions' : '▼ 全部區域';
-    const allDistrictText = currentLang === 'en' ? '▼ All Districts' : '▼ 全部地區';
-    const allCatText = currentLang === 'en' ? '▼ All Categories' : '▼ 全部類別';
+    // 1. 準備計數機
+    const regionCounts = {};
+    const districtCounts = {};
+    const categoryCounts = {};
+    let totalShops = 0; // 順便計埋總店舖數量
 
-    filterRegionEl.innerHTML = `<option value="">${allRegionText}</option>`;
     const regionsSet = new Set();
+    const categoriesSet = new Set();
     globalRegionDistrictsMap = {};
 
+    const catEngToChiMap = {};
+
+    // 2. Loop 晒所有店舖，一邊抽類別一邊計數
     rawShops.forEach(s => {
+        totalShops++;
+        
+        // 處理 Category
+        const chiCat = (s['Category'] || '').trim();
+        const engCat = (s['Category_en'] || '').trim();
+        const cat = (currentLang === 'en' && engCat) ? engCat : chiCat;
+
+        if (cat) {
+            categoriesSet.add(cat);
+            categoryCounts[cat] = (categoryCounts[cat] || 0) + 1;
+            // 記錄中英對照，方便陣間搵圖釘
+            if (engCat && chiCat) {
+                catEngToChiMap[engCat] = chiCat; 
+            }
+        }
+
+        // 處理 Region & District
         const rawDist = (currentLang === 'en' && s['District_en']) ? s['District_en'].trim() : (s['District'] || '').trim();
         if (!rawDist) return;
 
@@ -164,19 +354,32 @@ function updateDropdowns() {
         const d = parts.length > 1 ? parts[1] : '';
 
         regionsSet.add(r);
+        regionCounts[r] = (regionCounts[r] || 0) + 1; // 有呢個區域就 +1
+
         if (!globalRegionDistrictsMap[r]) globalRegionDistrictsMap[r] = new Set();
-        if (d) globalRegionDistrictsMap[r].add(d);
+        if (d) {
+            globalRegionDistrictsMap[r].add(d);
+            districtCounts[d] = (districtCounts[d] || 0) + 1; // 有呢個地區就 +1
+        }
     });
 
+    // 將「全部」選項都加埋總數落去
+    const allRegionText = currentLang === 'en' ? `▼ All Regions (${totalShops})` : `▼ 全部區域 (${totalShops})`;
+    const allDistrictText = currentLang === 'en' ? `▼ All Districts` : `▼ 全部地區`; // 地區選項會隨區域變動，所以唔加總數
+    const allCatText = currentLang === 'en' ? `▼ All Categories (${totalShops})` : `▼ 全部類別 (${totalShops})`;
+
+    // 3. 生成 Region Dropdown (加上數字)
+    filterRegionEl.innerHTML = `<option value="">${allRegionText}</option>`;
     const regions = Array.from(regionsSet).sort((a, b) => a.localeCompare(b, currentLang === 'en' ? 'en' : 'zh-Hant', { sensitivity: 'base', numeric: true }));
     regions.forEach(r => {
         const opt = document.createElement('option');
         opt.value = r;
-        opt.textContent = r;
+        opt.textContent = `${r} (${regionCounts[r]})`; // 顯示格式：區域 (數量)
         filterRegionEl.appendChild(opt);
     });
     filterRegionEl.value = currentRegion;
 
+    // 4. 生成 District Dropdown (加上數字)
     filterDistrictEl.innerHTML = `<option value="">${allDistrictText}</option>`;
     const allDists = Array.from(new Set(Object.values(globalRegionDistrictsMap).flatMap(set => Array.from(set)))).sort((a, b) => a.localeCompare(b, currentLang === 'en' ? 'en' : 'zh-Hant', { sensitivity: 'base', numeric: true }));
     
@@ -185,7 +388,7 @@ function updateDropdowns() {
             if (d) {
                 const opt = document.createElement('option');
                 opt.value = d;
-                opt.textContent = d;
+                opt.textContent = `${d} (${districtCounts[d]})`; // 顯示格式：地區 (數量)
                 filterDistrictEl.appendChild(opt);
             }
         });
@@ -194,26 +397,61 @@ function updateDropdowns() {
         dists.forEach(d => {
             const opt = document.createElement('option');
             opt.value = d;
-            opt.textContent = d;
+            opt.textContent = `${d} (${districtCounts[d]})`; // 顯示格式：地區 (數量)
             filterDistrictEl.appendChild(opt);
         });
     }
     filterDistrictEl.value = currentDistrict;
 
+    // 5. 生成 Directory Category Dropdown (加上數字)
     filterCategoryEl.innerHTML = `<option value="">${allCatText}</option>`;
-    const categoriesSet = new Set();
-    rawShops.forEach(s => {
-        const cat = (currentLang === 'en' && s['Category_en']) ? s['Category_en'].trim() : (s['Category'] || '').trim();
-        if (cat) categoriesSet.add(cat);
+    
+    // 重新排序邏輯：按數量由多至少，然後按名稱
+    const categories = Array.from(categoriesSet).sort((a, b) => {
+        if (categoryCounts[b] !== categoryCounts[a]) {
+            return categoryCounts[b] - categoryCounts[a]; 
+        }
+        return a.localeCompare(b, currentLang === 'en' ? 'en' : 'zh-Hant', { sensitivity: 'base' });
     });
-    const categories = Array.from(categoriesSet).sort((a, b) => a.localeCompare(b, currentLang === 'en' ? 'en' : 'zh-Hant', { sensitivity: 'base' }));
+
+    // 補返呢個 Loop！將排好序嘅類別，逐個變做 <option> 塞入 Directory 選單
     categories.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c;
-        opt.textContent = c;
+        opt.textContent = `${c} (${categoryCounts[c]})`; // 顯示格式：類別 (數量)
         filterCategoryEl.appendChild(opt);
     });
+    
     filterCategoryEl.value = currentCat;
+
+    // 6. 更新自訂圖片 Dropdown
+    const customList = document.querySelector('#custom-map-dropdown .dropdown-list');
+    if (customList) {
+        customList.innerHTML = '';
+        
+        // 加入「全部類別」選項 (無圖片)
+        const allItem = document.createElement('div');
+        allItem.className = 'dropdown-item';
+        allItem.dataset.value = '';
+        allItem.innerHTML = `<span style="flex:1;">${allCatText}</span>`;
+        customList.appendChild(allItem);
+
+        // 加入各個類別 (連同圖釘圖片)
+       categories.forEach(c => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item';
+            item.dataset.value = c;
+            
+            // 新增：先透過翻譯機將英文名轉返做中文，如果冇（即係繁體介面）就照用原名 c
+            const searchKey = catEngToChiMap[c] || c;
+            
+            // 用 searchKey 去查圖釘字典
+            const imgSrc = GLOBAL_CATEGORY_PINS[searchKey] || GLOBAL_CATEGORY_PINS['default'];
+            
+            item.innerHTML = `<img src="${imgSrc}" alt="${c}"><span style="flex:1;">${c}</span><span style="opacity:0.6;">(${categoryCounts[c]})</span>`;
+            customList.appendChild(item);
+        });
+    }
 }
 
 const cardsEl = document.getElementById('cards');
@@ -242,6 +480,7 @@ function renderCards(shops) {
         const links = document.createElement('div'); links.className = 'links';
         if (s['Website']) { const aWeb = document.createElement('a'); aWeb.href = s['Website']; aWeb.target = '_blank'; aWeb.rel = 'noopener noreferrer'; aWeb.title = 'Website'; aWeb.appendChild(createIcon('web', '#1e88e5')); links.appendChild(aWeb); }
         if (s['IG']) { const aIg = document.createElement('a'); aIg.href = s['IG']; aIg.target = '_blank'; aIg.rel = 'noopener noreferrer'; aIg.title = 'Instagram'; aIg.appendChild(createIcon('ig', '#e4405f')); links.appendChild(aIg); }
+        if (s['Blog']) { const aBlog = document.createElement('a'); aBlog.href = s['Blog']; aBlog.target = '_blank'; aBlog.rel = 'noopener noreferrer'; aBlog.title = 'Blog / Article'; aBlog.appendChild(createIcon('blog', '#e67e22')); links.appendChild(aBlog); }
 
         body.appendChild(h3); body.appendChild(en); body.appendChild(addr); body.appendChild(cat); body.appendChild(links);
 
@@ -294,7 +533,10 @@ async function loadShops() {
             "Category_en": row.c[12]?.v || "",
             "Remark": row.c[13]?.v || "",
             "Remark_en": row.c[14]?.v || "",
-            "MapSite": row.c[16]?.v || ""
+            "MapSite": row.c[16]?.v || "",
+            "Lat": row.c[17]?.v || "", 
+            "Lng": row.c[18]?.v || "",
+            "Blog": row.c[19]?.v || ""
         }));
 
         if (rawShops.length > 0 && rawShops[0].Name === "Name") {
@@ -371,6 +613,7 @@ function applyAndRender() {
 
     currentShops = sorted;
     renderCards(currentShops);
+    updateMap(currentShops);
 }
 
 // 動態注入閃爍特效的 CSS Style
@@ -609,6 +852,57 @@ async function loadEvents() {
             if (viewEventCards) viewEventCards.innerHTML = `<p style='color:red;'>${translations[currentLang].loadFailed}</p>`;
         });
 }
+
+// --- 自訂圖片選單嘅操作邏輯 ---
+const customDropdown = document.getElementById('custom-map-dropdown');
+if (customDropdown) {
+    const dropdownSelected = customDropdown.querySelector('.dropdown-selected');
+    const dropdownText = customDropdown.querySelector('.dropdown-text');
+    const dropdownIcon = customDropdown.querySelector('.dropdown-icon');
+    const dropdownList = customDropdown.querySelector('.dropdown-list');
+
+    // 點擊打開/關閉選單
+    dropdownSelected.addEventListener('click', (e) => {
+        e.stopPropagation(); // 防止點擊事件向外擴散
+        customDropdown.classList.toggle('open');
+    });
+
+    // 點擊外面任何地方自動關閉選單
+    document.addEventListener('click', () => {
+        customDropdown.classList.remove('open');
+    });
+
+    // 點擊清單項目
+    dropdownList.addEventListener('click', (e) => {
+        const item = e.target.closest('.dropdown-item');
+        if (!item) return;
+
+        const val = item.dataset.value;
+        const imgSrc = item.querySelector('img')?.src;
+        
+        // 更新顯示狀態
+        if (val === '') {
+            dropdownIcon.style.display = 'none';
+            dropdownText.textContent = item.textContent; // 顯示全部類別
+        } else {
+            dropdownIcon.src = imgSrc;
+            dropdownIcon.style.display = 'block';
+            dropdownText.textContent = val; // 只顯示類別名 (唔顯示數量)
+        }
+
+        // 執行地圖過濾 (結合 MarkerCluster)
+        markersLayer.clearLayers();
+        allMarkers.forEach(marker => {
+            const s = marker.shopData;
+            const catText = (currentLang === 'en' && s['Category_en']) ? s['Category_en'].trim() : (s['Category'] || '').trim();
+            
+            if (val === "" || catText === val) {
+                markersLayer.addLayer(marker); 
+            }
+        });
+    });
+}
+
 
 sortNameEl.addEventListener('change', applyAndRender);
 filterRegionEl.addEventListener('change', applyAndRender);

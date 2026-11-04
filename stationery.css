@@ -11,13 +11,42 @@
         box-sizing: border-box;
     }
 
+    html {
+        width: 100%;
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
     body {
+        width: 100%;
+        max-width: 100%;
         margin: 0;
+        padding: 0; 
+        overflow-x: hidden; 
+        
+        /* 以下全部保留你原本嘅設定 */
         font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
         background: var(--bg);
         color: var(--text);
         min-height: 100%;
         background-image: url("images/stationery_bg.png");
+    }
+
+    /* 大包圍寫法：強制網頁所有文字、按鈕、選單同地圖元素都統一字體 */
+    body, 
+    button, 
+    input, 
+    select, 
+    textarea, 
+    .leaflet-container, 
+    .custom-dropdown *,
+    .card * {
+        font-family: 'Lora', 'LXGW WenKai TC', 'Microsoft JhengHei', 'PingFang HK', sans-serif !important;
+    }
+    
+    /* 確保所有主區塊強制跟隨 100% 闊度，避免 Sticky 元素計算錯誤 */
+    header, .tabs, .container-bg {
+        width: 100%;
     }
 
     header {
@@ -576,3 +605,183 @@
         padding: 5px 12px;
     }
 }
+/* 將地圖底圖層加上復古/啡色濾鏡 */
+.leaflet-tile-pane {
+    /* sepia(50%) 加上復古黃褐色，contrast(95%) 令畫面柔和啲 */
+    filter: sepia(20%) contrast(95%) brightness(95%);
+    /* 你可以自己更改 50% 呢個數值，越大就越啡/越黃 */
+}
+
+/* 保留地圖右下角版權，但極度降低存在感 */
+.leaflet-control-attribution {
+    opacity: 0.35 !important; /* 透明度降到 35% */
+    background: transparent !important; /* 拎走預設嘅白色底框，完美融入地圖 */
+    pointer-events: none; /* 唔小心撳到都唔會干擾操作 */
+}
+
+/* 將版權入面嘅藍色超連結，轉返做柔和嘅灰啡色 */
+.leaflet-control-attribution a {
+    color: #4a433a !important; 
+    pointer-events: auto; /* 保留返條 Link 可以畀人有心去撳 */
+}
+/* 1. 更改 Popup 卡片主體嘅底色同外觀 */
+.leaflet-popup-content-wrapper {
+    background-color: #fdf8e6; /* 呢個係柔和嘅米黃色，你可以換成你鍾意嘅色碼 */
+    color: #451c03; /* 配合返你網站嘅深啡色字體 */
+    border-radius: 8px; /* 卡片圓角 */
+    box-shadow: 0 4px 12px rgba(69, 28, 3, 0.15); /* 啡色系嘅柔和陰影 */
+}
+
+/* 2. 更改卡片底部指住 Marker 嘅小三角形，必須同上面底色一致 */
+.leaflet-popup-tip {
+    background-color: #fdf8e6; /* 必須同 content-wrapper 嘅顏色一樣 */
+}
+
+/* 3. （選擇性）更改卡片右上角「X」關閉按鈕嘅顏色 */
+.leaflet-popup-close-button {
+    color: #451c03 !important; /* 轉做深啡色 */
+}
+.leaflet-popup-close-button:hover {
+    color: #e4405f !important; /* 滑鼠移過去變紅色 */
+}
+
+/* ---  (+/-)  --- */
+.leaflet-bar {
+    border: 1px solid #a39781 !important; /* 外框顏色，同 Select 一樣 */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15) !important; /* 統一懸浮陰影 */
+    border-radius: 4px !important; /* 統一圓角 */
+    overflow: hidden; /* 確保入面啲掣唔會凸出圓角 */
+}
+
+.leaflet-bar a {
+    background-color: #e8dfcd !important; /* 卡其色底色 */
+    color: #4a433a !important; /* 灰啡色字體 */
+    border-bottom: 1px solid #a39781 !important; /* 中間嘅分隔線 */
+    transition: background-color 0.2s ease;
+}
+
+/* 滑鼠移過去嗰陣稍微加深顏色，提升點擊感 */
+.leaflet-bar a:hover {
+    background-color: #dcd0b8 !important;
+    color: #4a433a !important;
+}
+
+/* 確保最底個掣唔好多咗條底線 */
+.leaflet-bar a:last-child {
+    border-bottom: none !important;
+}
+
+/* --- 對齊 Filter Bar --- */
+/* 將預設嘅 margin 改做 15px，同你 Filter Bar 嘅 top: 15px 完美水平對齊 */
+.leaflet-top .leaflet-control {
+    margin-top: 15px !important; 
+    margin-left: 15px !important; 
+}
+
+/* 令所有圖釘圖片自動產生完美貼邊嘅立體陰影 */
+.leaflet-marker-icon {
+    filter: drop-shadow(2px 4px 4px rgba(0, 0, 0, 0.4));
+}
+
+/* --- Marker Cluster 搶眼高對比色系 (復古磚紅) --- */
+/* 外圍嘅半透明光暈 */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+    background-color: rgba(211, 84, 0, 0.4) !important; /* 亮橙紅色光暈 */
+}
+
+/* 中心圓圈同文字 */
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+    background-color: #d35400 !important; /* 搶眼嘅復古磚紅色 */
+    color: #fff !important; /* 白色數字 */
+    font-family: inherit;
+    font-weight: bold;
+    border: 2px solid #fff; /* 加粗白色邊框，令佢喺地圖上強烈凸出 */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); /* 加深陰影，增強立體感 */
+}
+
+/* --- 自訂圖片下拉選單 --- */
+.custom-dropdown {
+    position: relative;
+    font-family: inherit;
+    font-size: 14px;
+    color: #4a433a;
+    user-select: none;
+    min-width: 180px; /* 由 140px 改為 180px */
+}
+
+.dropdown-selected {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    background: rgba(232, 223, 205, 0.95);
+    border: 1px solid #a39781;
+    border-radius: 4px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    gap: 8px;
+}
+
+.dropdown-icon {
+    width: 14px; /* 配合字體大細縮放圖釘 */
+    height: auto;
+}
+
+.dropdown-arrow {
+    margin-left: auto;
+    font-size: 10px;
+    transition: transform 0.2s;
+}
+
+/* 打開選單時箭頭向上 */
+.custom-dropdown.open .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.dropdown-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    /* 刪除咗 right: 0; 唔再限死佢嘅右邊界 */
+    
+    min-width: 100%; /* 確保最少同上面個掣一樣闊 */
+    width: max-content; /* 新增呢句：強制個框自動撐到跟最長嗰行字一樣闊 */
+    
+    margin-top: 4px;
+    background: rgba(232, 223, 205, 0.98);
+    border: 1px solid #a39781;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    display: none;
+    flex-direction: column;
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden; /* 徹底封殺橫向 Scrollbar */
+    z-index: 1001;
+}
+
+.custom-dropdown.open .dropdown-list {
+    display: flex;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    gap: 10px;
+    transition: background 0.2s;
+    white-space: nowrap; /* 新增呢句：強制所有字喺同一行，唔准斷行 */
+}
+.dropdown-item:hover {
+    background: #dcd0b8;
+}
+
+.dropdown-item img {
+    width: 14px;
+    height: auto;
+}
+
